@@ -35,13 +35,29 @@ class _NavigationScreenState extends State<NavigationScreen> {
         index: _selectedIndex,
         height: 60.0,
         backgroundColor: Colors.transparent,
-        color: const Color(0xFF3D5CFF),
-        buttonBackgroundColor: Colors.white,
+        color: const Color(0xFF161632),
+        buttonBackgroundColor: Color(0xFF1A1B3E),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 400),
         items: const <Widget>[
-          Icon(Icons.school, size: 30, color: Colors.black),
-          Icon(Icons.person, size: 30, color: Colors.black),
+          Column(
+            children: [
+              Icon(Icons.school, size: 30, color: Color.fromARGB(255, 255, 255, 255)),
+              Text(
+                'Learning',
+                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12),
+              ),
+            ],
+          ),
+          Column(
+            children: [
+              Icon(Icons.person, size: 30, color: Color.fromARGB(255, 255, 255, 255)),
+              Text(
+                'Profile',
+                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12),
+              ),
+            ],
+          ),
         ],
         onTap: (index) {
           setState(() {
