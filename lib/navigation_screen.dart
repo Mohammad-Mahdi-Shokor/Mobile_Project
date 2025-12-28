@@ -3,7 +3,6 @@ import 'package:curved_navigation_bar/curved_navigation_bar.dart'
 import 'package:flutter/material.dart';
 import 'package:mobile_project/profile_screen.dart';
 import 'package:mobile_project/screenAppBar.dart';
-
 import 'learning_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -15,13 +14,34 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
-  Widget currentScreen = LearningScreen();
+  Widget currentScreen = const LearningScreen();
+
   void switchScreen() {
     if (_selectedIndex == 0) {
-      currentScreen = LearningScreen();
+      currentScreen = const LearningScreen();
     } else {
-      currentScreen = ProfileScreen();
+      currentScreen = const ProfileScreen();
     }
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(top: isSelected ? 0 : 10),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 30, color: Colors.white),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -36,27 +56,19 @@ class _NavigationScreenState extends State<NavigationScreen> {
         height: 60.0,
         backgroundColor: Colors.transparent,
         color: const Color(0xFF161632),
-        buttonBackgroundColor: Color(0xFF1A1B3E),
+        buttonBackgroundColor: const Color(0xFF18193C),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 400),
-        items: const <Widget>[
-          Column(
-            children: [
-              Icon(Icons.school, size: 30, color: Color.fromARGB(255, 255, 255, 255)),
-              Text(
-                'Learning',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12),
-              ),
-            ],
+        items: [
+          _navItem(
+            icon: Icons.school,
+            label: 'Learning',
+            isSelected: _selectedIndex == 0,
           ),
-          Column(
-            children: [
-              Icon(Icons.person, size: 30, color: Color.fromARGB(255, 255, 255, 255)),
-              Text(
-                'Profile',
-                style: TextStyle(color: Color.fromARGB(255, 255, 255, 255), fontSize: 12),
-              ),
-            ],
+          _navItem(
+            icon: Icons.person,
+            label: 'Profile',
+            isSelected: _selectedIndex == 1,
           ),
         ],
         onTap: (index) {
