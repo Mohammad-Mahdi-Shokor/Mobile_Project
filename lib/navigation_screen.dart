@@ -1,5 +1,6 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_project/data.dart';
 import 'package:mobile_project/profile_screen.dart';
 import 'package:mobile_project/screenAppBar.dart';
 import 'learning_screen.dart';
@@ -16,13 +17,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
   Widget currentScreen = const LearningScreen();
   bool coursesExpanded = false;
-  final List<String> courses = const [
-    'Philosophy',
-    'Physics',
-    'Cybersecurity',
-    'Mobile',
-    'Agile',
-  ];
+  final List<String> courses = sampleCourses.map((course) => course.title).toList();
 
   void switchScreen() {
     if (_selectedIndex == 0) {
