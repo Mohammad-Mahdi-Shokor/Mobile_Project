@@ -56,75 +56,103 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F1F39),
-      appBar: ScreenAppBar(_selectedIndex, openDrawer: () {
-        Scaffold.of(context).openDrawer();
-      }),
-      drawer: Drawer(
-        backgroundColor: const Color(0xFF1F1F39),
-        child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  'Menu',
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      appBar: ScreenAppBar(_selectedIndex),
+      drawer:
+          _selectedIndex == 0
+              ? Drawer(
+                backgroundColor: const Color(0xFF1F1F39),
+
+                child: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          'Menu',
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.book, color: Colors.white),
+                        title: Text(
+                          'Courses',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        trailing: Icon(
+                          coursesExpanded
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
+                          color: Colors.white,
+                        ),
+                        onTap: () {
+                          setState(() {
+                            coursesExpanded = !coursesExpanded;
+                          });
+                        },
+                      ),
+                      if (coursesExpanded)
+                        ...courses.map(
+                          (course) => Padding(
+                            padding: const EdgeInsets.only(left: 40.0),
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.circle,
+                                color: Colors.white,
+                              ),
+                              title: Text(
+                                course,
+                                style: GoogleFonts.poppins(color: Colors.white),
+                              ),
+                              onTap: () {},
+                            ),
+                          ),
+                        ),
+                      ListTile(
+                        leading: const Icon(Icons.chat, color: Colors.white),
+                        title: Text(
+                          'Chats',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        onTap: () {},
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.group, color: Colors.white),
+                        title: Text(
+                          'Groups',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        onTap: () {},
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.public, color: Colors.white),
+                        title: Text(
+                          'Communities',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        onTap: () {},
+                      ),
+                      const Spacer(),
+                      ListTile(
+                        leading: const Icon(
+                          Icons.settings,
+                          color: Colors.white,
+                        ),
+                        title: Text(
+                          'Settings',
+                          style: GoogleFonts.poppins(color: Colors.white),
+                        ),
+                        onTap: () {},
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.book, color: Colors.white),
-                title: Text('Courses', style: GoogleFonts.poppins(color: Colors.white)),
-                trailing: Icon(
-                  coursesExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: Colors.white,
-                ),
-                onTap: () {
-                  setState(() {
-                    coursesExpanded = !coursesExpanded;
-                  });
-                },
-              ),
-              if (coursesExpanded)
-                ...courses.map(
-                  (course) => Padding(
-                    padding: const EdgeInsets.only(left: 40.0),
-                    child: ListTile(
-                      leading: const Icon(Icons.circle, color: Colors.white),
-                      title: Text(course, style: GoogleFonts.poppins(color: Colors.white)),
-                      onTap: () {},
-                    ),
-                  ),
-                ),
-              ListTile(
-                leading: const Icon(Icons.chat, color: Colors.white),
-                title: Text('Chats', style: GoogleFonts.poppins(color: Colors.white)),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.group, color: Colors.white),
-                title: Text('Groups', style: GoogleFonts.poppins(color: Colors.white)),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(Icons.public, color: Colors.white),
-                title: Text('Communities', style: GoogleFonts.poppins(color: Colors.white)),
-                onTap: () {},
-              ),
-              const Spacer(),
-              ListTile(
-                leading: const Icon(Icons.settings, color: Colors.white),
-                title: Text('Settings', style: GoogleFonts.poppins(color: Colors.white)),
-                onTap: () {},
-              ),
-            ],
-          ),
-        ),
-      ),
+              )
+              : null,
       body: currentScreen,
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,

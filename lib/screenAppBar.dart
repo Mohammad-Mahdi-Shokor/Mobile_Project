@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-AppBar ScreenAppBar(int index, {VoidCallback? openDrawer}) {
+AppBar ScreenAppBar(int index) {
   if (index != 0) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -33,10 +33,8 @@ AppBar ScreenAppBar(int index, {VoidCallback? openDrawer}) {
   return AppBar(
     backgroundColor: const Color(0xFF3D5CFF),
     toolbarHeight: 100,
-    leading: IconButton(
-      icon: const Icon(Icons.menu),
-      color: Colors.white,
-      onPressed: openDrawer, // <-- use the callback here
+    iconTheme: const IconThemeData(
+      color: Colors.white, // drawer icon color
     ),
     title: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
