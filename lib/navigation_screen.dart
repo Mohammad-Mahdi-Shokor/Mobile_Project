@@ -1,9 +1,9 @@
-import 'package:curved_navigation_bar/curved_navigation_bar.dart'
-    show CurvedNavigationBar;
+import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_project/profile_screen.dart';
 import 'package:mobile_project/screenAppBar.dart';
 import 'learning_screen.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key});
@@ -15,6 +15,14 @@ class NavigationScreen extends StatefulWidget {
 class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
   Widget currentScreen = const LearningScreen();
+  bool coursesExpanded = false;
+  final List<String> courses = const [
+    'Philosophy',
+    'Physics',
+    'Cybersecurity',
+    'Mobile',
+    'Agile',
+  ];
 
   void switchScreen() {
     if (_selectedIndex == 0) {
@@ -48,9 +56,76 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1F1F39),
-      appBar: ScreenAppBar(_selectedIndex),
+      appBar: ScreenAppBar(_selectedIndex, openDrawer: () {
+        Scaffold.of(context).openDrawer();
+      }),
+      drawer: Drawer(
+        backgroundColor: const Color(0xFF1F1F39),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(
+                  'Menu',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.book, color: Colors.white),
+                title: Text('Courses', style: GoogleFonts.poppins(color: Colors.white)),
+                trailing: Icon(
+                  coursesExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  color: Colors.white,
+                ),
+                onTap: () {
+                  setState(() {
+                    coursesExpanded = !coursesExpanded;
+                  });
+                },
+              ),
+              if (coursesExpanded)
+                ...courses.map(
+                  (course) => Padding(
+                    padding: const EdgeInsets.only(left: 40.0),
+                    child: ListTile(
+                      leading: const Icon(Icons.circle, color: Colors.white),
+                      title: Text(course, style: GoogleFonts.poppins(color: Colors.white)),
+                      onTap: () {},
+                    ),
+                  ),
+                ),
+              ListTile(
+                leading: const Icon(Icons.chat, color: Colors.white),
+                title: Text('Chats', style: GoogleFonts.poppins(color: Colors.white)),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.group, color: Colors.white),
+                title: Text('Groups', style: GoogleFonts.poppins(color: Colors.white)),
+                onTap: () {},
+              ),
+              ListTile(
+                leading: const Icon(Icons.public, color: Colors.white),
+                title: Text('Communities', style: GoogleFonts.poppins(color: Colors.white)),
+                onTap: () {},
+              ),
+              const Spacer(),
+              ListTile(
+                leading: const Icon(Icons.settings, color: Colors.white),
+                title: Text('Settings', style: GoogleFonts.poppins(color: Colors.white)),
+                onTap: () {},
+              ),
+            ],
+          ),
+        ),
+      ),
       body: currentScreen,
-      // hayde el navigator bar yale ta7et ( we modify color later)
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,
         height: 60.0,
