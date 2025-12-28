@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project/data.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -130,10 +131,4 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
     );
   }
-}
-
-class Achievement {
-  final Icon icon;
-  final String name;
-  Achievement(this.icon, this.name);
 }

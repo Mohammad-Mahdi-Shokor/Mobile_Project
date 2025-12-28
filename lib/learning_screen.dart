@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project/data.dart';
 
 class LearningScreen extends StatelessWidget {
   const LearningScreen({super.key});
 
-  final List<String> courses = const [
-    'Philosophy',
-    'Physics',
-    'Cybersecurity',
-    'Mobile',
-    'Agile',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<String> courses =
+        sampleCourses.map((course) => course.title).toList();
     const double cardWidth = 160;
     const double cardHeight = 160;
     const Color cardColor = Color(0xFFCDEBFD);

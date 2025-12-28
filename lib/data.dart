@@ -1,13 +1,17 @@
+import 'package:flutter/material.dart';
+
 class Course {
   final String title;
   final String Description;
   final List<Lesson> lessons;
+  final bool registered;
   final int NumberOfFinished;
   Course({
     required this.title,
     required this.Description,
     required this.lessons,
     required this.NumberOfFinished,
+    required this.registered,
   });
 }
 
@@ -32,9 +36,16 @@ class Answer {
   Answer({required this.answer});
 }
 
+class Achievement {
+  final Icon icon;
+  final String name;
+  Achievement(this.icon, this.name);
+}
+
 // the data below is sample data, we will change it later :
 final List<Course> sampleCourses = [
   Course(
+    registered: true,
     title: "Cybersecurity",
     Description:
         "Learn the fundamentals of protecting systems, networks, and data.",
@@ -82,6 +93,7 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
+    registered: true,
     title: "Mobile Development",
     Description:
         "Build modern mobile applications using cross-platform technologies.",
@@ -119,6 +131,7 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
+    registered: false,
     title: "Physics",
     Description:
         "Understand the laws that govern matter, energy, and the universe.",
@@ -156,6 +169,7 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
+    registered: false,
     title: "Philosophy",
     Description:
         "Explore fundamental questions about existence, knowledge, and ethics.",
