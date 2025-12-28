@@ -4,14 +4,12 @@ class Course {
   final String title;
   final String Description;
   final List<Lesson> lessons;
-  final bool registered;
   final int NumberOfFinished;
   Course({
     required this.title,
     required this.Description,
     required this.lessons,
     required this.NumberOfFinished,
-    required this.registered,
   });
 }
 
@@ -39,13 +37,35 @@ class Answer {
 class Achievement {
   final Icon icon;
   final String name;
-  Achievement(this.icon, this.name);
+  final double percentage;
+  Achievement(this.icon, this.name, {this.percentage = 0});
+}
+
+class User {
+  final String username;
+  final String FirstName;
+  final String tag;
+  final int age;
+  final String Gender;
+  final String profilePicture;
+  final List<double> achievementsScores;
+  final List<Course> registeredCourses;
+
+  User({
+    required this.username,
+    required this.tag,
+    required this.age,
+    required this.Gender,
+    required this.profilePicture,
+    required this.achievementsScores,
+    required this.registeredCourses,
+    required this.FirstName,
+  });
 }
 
 // the data below is sample data, we will change it later :
 final List<Course> sampleCourses = [
   Course(
-    registered: true,
     title: "Cybersecurity",
     Description:
         "Learn the fundamentals of protecting systems, networks, and data.",
@@ -93,7 +113,6 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
-    registered: true,
     title: "Mobile Development",
     Description:
         "Build modern mobile applications using cross-platform technologies.",
@@ -131,7 +150,6 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
-    registered: false,
     title: "Physics",
     Description:
         "Understand the laws that govern matter, energy, and the universe.",
@@ -169,7 +187,6 @@ final List<Course> sampleCourses = [
   ),
 
   Course(
-    registered: false,
     title: "Philosophy",
     Description:
         "Explore fundamental questions about existence, knowledge, and ethics.",
@@ -205,4 +222,37 @@ final List<Course> sampleCourses = [
       ),
     ],
   ),
+];
+
+final User sampleUser = User(
+  username: "Mohammad Hammadi",
+  FirstName: "Mohammad",
+  tag: "Software Engineer",
+  age: 21,
+  Gender: "Male",
+  profilePicture:
+      "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAqAMBIgACEQEDEQH/xAAaAAEAAgMBAAAAAAAAAAAAAAAABAcDBQYB/8QAORAAAgIBAgIHBwEGBwEAAAAAAAECBAMFEQZREiExQXGBsRMiQmGRodFyFiMyUmLBMzQ1c5Ky8BT/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQL/xAAWEQEBAQAAAAAAAAAAAAAAAAAAARH/2gAMAwEAAhEDEQA/ALSABpkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARdQv1tOrvNaydCPZFdrk+SRyOocXW809qUIYMfdJrpTf9ijt91zPSt1r+rKXS/+/L9jYUOL7mGSjdhDPj362l0Zfhg13AIun362o11mq5OlHsaa2cXyaJQAAEAAAAAAAAAAAAAAAAAwXbWKlVyWM8toY1u+b5IznIcdXm8mCjF+6l7WfovR/Uo57U9Qz6lblYzv9EN+qC5IiAFQAAEvS9Qz6bbjnrt8pQ36prkyyaVrFdq47OCW+Oa3XNc0/mVWdZwLdftM9Gbbjt7SCfkmvuhVdeADIAAAAAAAAAAAAAAAAeBXfFc3LXrO/wAPRS/4osQrzi3G4a9Yb+JRl9l+ClacAFQAAA23Ck3DXq23xdKL8HFmpNxwnjeTXsH9KlL7MCwwARQAEAAAAAAAAAAAAAAOP46ptZMF2KbTj7Kf1bXq/odgR79PFfp5Kudfu8i28H2p+TKKsBL1PTrGm2pYLMdn1uMu6a5oiFQAAA6vgSp+9sXZLqUfZR+qb9F9Tn9M0/PqdlYK8d3v78n2QXNlkUKeKhTx1sC2hjW3i+9/UipAAIAAAAAAAAAAAAAAAAAAKMNqrgt4Xis4oZIPuktzQWeDqk5OVazlw7/DLaa8u83tq9UqLe1ZxYuSlLrfl2mrzcV6VjbUJ5Mu38sPyBq/2Lyb/wCeht/tvf1Jdbg2pB9KzYy5f6I+4n/c9/bGhvsq9jbntH8mfDxXpeR7Slkxb984Pb7AbirWw1MSxVscceNd0fXx+ZlI9S9UuLerZxZV39GXWvLtJH/uoAACAAAAAAAAAAAAAAAGt1vV8Ok1unLaWafVjx79r5vkiiRqGoVtNw+1tZOgvhj2yk/kjjNU4pu224VZOrif8vXN+L/BqLtzPesysWZ9PI+/sS+SRgLiPZSc25Sbcn2tvrPAAAAA9i3GSlFuMl2ST2aN7pnFF2o1Cy3ZxcpP314Pv8zQgGrR0/UK2o4Pa1Mikl/FF9Uo+KJRVdK5no2I2KuRwyLq+TXJrvRYWh6vh1Wt04roZ4/4uPf+F818iK2QAAAAgAAAAAAAKMF21ipVclnM9oY1v48l5srTUb2XULmSzmfvSfUu6K7kjoON77nnx0MbfRgunk5OT7F9OvzOWKgAAAAAAAAAABJ027m0+5CzgfvR7Y90l3ojAC1KdrFdq47OF7wyR3XNc0zOcbwRfcc2Whkl7s4uePful3rzXodk+0igAIAAAAAAeNqKcpPaK62ekHW8rw6RcyJ7NYpbfQorm7YlbuZrMu3JNy8u77GAAqAAAAAAAAAAAAADPRsOpcwWI9uKaltz5/YtNNSSlF7xfWn8ipSzdEyvNo9PI+14o7+hKqcACAAAAAAGr4n/ANBt/pXqjwAVyADSAAAAAAAAAAAAAAWPwv16DU/Q/wDszwEqtqACAAAP/9k=",
+  achievementsScores: [0, 0.1, 0.3, 0.5, 0.7, 1, 1, 1, 1, 1, 1, 1, 1],
+  registeredCourses: sampleCourses, // from your previous course sample data
+);
+
+List<Achievement> sampleAchievements = [
+  Achievement(Icon(Icons.school, color: Colors.blue), "Course 1"),
+  Achievement(Icon(Icons.school, color: Colors.green), "Course 2"),
+  Achievement(
+    Icon(Icons.assignment_turned_in, color: Colors.orange),
+    "Assign 1",
+  ),
+  Achievement(
+    Icon(Icons.assignment_turned_in, color: Colors.deepOrange),
+    "Assign 2",
+  ),
+  Achievement(Icon(Icons.emoji_events, color: Colors.amber), "Quiz 1"),
+  Achievement(Icon(Icons.ondemand_video, color: Colors.redAccent), "Video 1"),
+  Achievement(Icon(Icons.forum, color: Colors.purple), "Forum 1"),
+  Achievement(Icon(Icons.star, color: Colors.yellow), "Skill 1"),
+  Achievement(Icon(Icons.build, color: Colors.teal), "Project 1"),
+  Achievement(Icon(Icons.local_fire_department, color: Colors.red), "Points 1"),
+  Achievement(Icon(Icons.whatshot, color: Colors.orangeAccent), "Streak 1"),
+  Achievement(Icon(Icons.article, color: Colors.blueGrey), "Reader 1"),
 ];
