@@ -5,11 +5,20 @@ class Course {
   final String Description;
   final List<Lesson> lessons;
   final int NumberOfFinished;
+
+  // New fields for course info screen
+  final String about;
+  final String imageUrl;
+  final List<String> sections;
+
   Course({
     required this.title,
     required this.Description,
     required this.lessons,
     required this.NumberOfFinished,
+    required this.about,
+    required this.imageUrl,
+    required this.sections,
   });
 }
 
@@ -63,7 +72,7 @@ class User {
   });
 }
 
-// the data below is sample data, we will change it later :
+// ---------------- SAMPLE COURSES ----------------
 final List<Course> sampleCourses = [
   Course(
     title: "Cybersecurity",
@@ -79,8 +88,8 @@ final List<Course> sampleCourses = [
             question: "What is cybersecurity?",
             answers: [
               Answer(
-                answer: "Protecting systems and networks from digital attacks",
-              ),
+                  answer:
+                      "Protecting systems and networks from digital attacks"),
               Answer(answer: "Developing mobile applications"),
               Answer(answer: "Designing computer hardware"),
             ],
@@ -110,8 +119,17 @@ final List<Course> sampleCourses = [
         ],
       ),
     ],
+    about:
+        "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
+    imageUrl:
+        "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
+    sections: [
+      "Introduction to Cybersecurity",
+      "Types of Cyber Attacks",
+      "Network Security Basics",
+      "Ethical Hacking Overview",
+    ],
   ),
-
   Course(
     title: "Mobile Development",
     Description:
@@ -147,8 +165,17 @@ final List<Course> sampleCourses = [
         ],
       ),
     ],
+    about:
+        "Learn how to build modern, beautiful mobile applications using cross-platform technologies. Focus on Flutter and best practices for app development.",
+    imageUrl:
+        "https://cdn-icons-png.flaticon.com/512/1055/1055687.png",
+    sections: [
+      "Mobile App Basics",
+      "Flutter & Dart",
+      "State Management",
+      "UI & UX Principles",
+    ],
   ),
-
   Course(
     title: "Physics",
     Description:
@@ -184,8 +211,17 @@ final List<Course> sampleCourses = [
         ],
       ),
     ],
+    about:
+        "This course explores the fundamental laws governing matter, energy, and motion, helping you understand how the universe works.",
+    imageUrl:
+        "https://cdn-icons-png.flaticon.com/512/2942/2942139.png",
+    sections: [
+      "Classical Mechanics",
+      "Energy & Work",
+      "Waves & Motion",
+      "Basic Thermodynamics",
+    ],
   ),
-
   Course(
     title: "Philosophy",
     Description:
@@ -221,6 +257,16 @@ final List<Course> sampleCourses = [
         ],
       ),
     ],
+    about:
+        "Philosophy encourages critical thinking about life’s deepest questions, including morality, existence, truth, and knowledge.",
+    imageUrl:
+        "https://cdn-icons-png.flaticon.com/512/1995/1995574.png",
+    sections: [
+      "Introduction to Philosophy",
+      "Ethics",
+      "Metaphysics",
+      "Philosophy of Mind",
+    ],
   ),
 ];
 
@@ -233,7 +279,7 @@ final User sampleUser = User(
   profilePicture:
       "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3N//AABEIAJQAqAMBIgACEQEDEQH/xAAaAAEAAgMBAAAAAAAAAAAAAAAABAcDBQYB/8QAORAAAgIBAgIHBwEGBwEAAAAAAAECBAMFEQZREiExQXGBsRMiQmGRodFyFiMyUmLBMzQ1c5Ky8BT/xAAWAQEBAQAAAAAAAAAAAAAAAAAAAQL/xAAWEQEBAQAAAAAAAAAAAAAAAAAAARH/2gAMAwEAAhEDEQA/ALSABpkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARdQv1tOrvNaydCPZFdrk+SRyOocXW809qUIYMfdJrpTf9ijt91zPSt1r+rKXS/+/L9jYUOL7mGSjdhDPj362l0Zfhg13AIun362o11mq5OlHsaa2cXyaJQAAEAAAAAAAAAAAAAAAAAwXbWKlVyWM8toY1u+b5IznIcdXm8mCjF+6l7WfovR/Uo57U9Qz6lblYzv9EN+qC5IiAFQAAEvS9Qz6bbjnrt8pQ36prkyyaVrFdq47OCW+Oa3XNc0/mVWdZwLdftM9Gbbjt7SCfkmvuhVdeADIAAAAAAAAAAAAAAAAeBXfFc3LXrO/wAPRS/4osQrzi3G4a9Yb+JRl9l+ClacAFQAAA23Ck3DXq23xdKL8HFmpNxwnjeTXsH9KlL7MCwwARQAEAAAAAAAAAAAAAAOP46ptZMF2KbTj7Kf1bXq/odgR79PFfp5Kudfu8i28H2p+TKKsBL1PTrGm2pYLMdn1uMu6a5oiFQAAA6vgSp+9sXZLqUfZR+qb9F9Tn9M0/PqdlYK8d3v78n2QXNlkUKeKhTx1sC2hjW3i+9/UipAAIAAAAAAAAAAAAAAAAAAKMNqrgt4Xis4oZIPuktzQWeDqk5OVazlw7/DLaa8u83tq9UqLe1ZxYuSlLrfl2mrzcV6VjbUJ5Mu38sPyBq/2Lyb/wCeht/tvf1Jdbg2pB9KzYy5f6I+4n/c9/bGhvsq9jbntH8mfDxXpeR7Slkxb984Pb7AbirWw1MSxVscceNd0fXx+ZlI9S9UuLerZxZV39GXWvLtJH/uoAACAAAAAAAAAAAAAAAGt1vV8Ok1unLaWafVjx79r5vkiiRqGoVtNw+1tZOgvhj2yk/kjjNU4pu224VZOrif8vXN+L/BqLtzPesysWZ9PI+/sS+SRgLiPZSc25Sbcn2tvrPAAAAA9i3GSlFuMl2ST2aN7pnFF2o1Cy3ZxcpP314Pv8zQgGrR0/UK2o4Pa1Mikl/FF9Uo+KJRVdK5no2I2KuRwyLq+TXJrvRYWh6vh1Wt04roZ4/4uPf+F818iK2QAAAAgAAAAAAAKMF21ipVclnM9oY1v48l5srTUb2XULmSzmfvSfUu6K7kjoON77nnx0MbfRgunk5OT7F9OvzOWKgAAAAAAAAAABJ027m0+5CzgfvR7Y90l3ojAC1KdrFdq47OF7wyR3XNc0zOcbwRfcc2Whkl7s4uePful3rzXodk+0igAIAAAAAAeNqKcpPaK62ekHW8rw6RcyJ7NYpbfQorm7YlbuZrMu3JNy8u77GAAqAAAAAAAAAAAAADPRsOpcwWI9uKaltz5/YtNNSSlF7xfWn8ipSzdEyvNo9PI+14o7+hKqcACAAAAAAGr4n/ANBt/pXqjwAVyADSAAAAAAAAAAAAAAWPwv16DU/Q/wDszwEqtqACAAAP/9k=",
   achievementsScores: [0, 0.1, 0.3, 0.5, 0.7, 1, 1, 1, 1, 1, 1, 1, 1],
-  registeredCourses: sampleCourses, // from your previous course sample data
+  registeredCourses: sampleCourses,
 );
 
 List<Achievement> sampleAchievements = [

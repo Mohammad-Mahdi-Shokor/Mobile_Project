@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project/course_info_screen.dart';
 import 'package:mobile_project/data.dart';
 
 class LearningScreen extends StatelessWidget {
@@ -54,7 +55,16 @@ class LearningScreen extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFF1F1F39),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CourseInfoScreen(
+                                course: sampleCourses[index],
+                              ),
+                            ),
+                          );
+                        },
                         child: Text(
                           'View Course',
                           style: GoogleFonts.poppins(color: Colors.white),
