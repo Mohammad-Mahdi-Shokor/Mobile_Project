@@ -49,16 +49,82 @@ AppBar ScreenAppBar(int index) {
         ),
         Text(
           "Let's start learning",
-          style: GoogleFonts.poppins(fontSize: 16, color: Colors.white70),
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            color: Colors.white70,
+          ),
         ),
       ],
     ),
     actions: [
       Padding(
-        padding: EdgeInsets.only(right: 16.0),
-        child: CircleAvatar(
-          radius: 25,
-          backgroundImage: NetworkImage(sampleUser.profilePicture),
+        padding: const EdgeInsets.only(right: 16.0),
+        child: PopupMenuButton<String>(
+          color: const Color(0xFF1F1F39),
+          offset: const Offset(0, 55),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          onSelected: (value) {},
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'achievements',
+              child: Row(
+                children: const [
+                  Icon(Icons.emoji_events, color: Color(0xFF3D5CFF)),
+                  SizedBox(width: 10),
+                  Text(
+                    'Achievements',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'account',
+              child: Row(
+                children: const [
+                  Icon(Icons.person, color: Color(0xFF3D5CFF)),
+                  SizedBox(width: 10),
+                  Text(
+                    'Account',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: 'settings',
+              child: Row(
+                children: const [
+                  Icon(Icons.settings, color: Color(0xFF3D5CFF)),
+                  SizedBox(width: 10),
+                  Text(
+                    'Settings',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(height: 20),
+            PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: const [
+                  Icon(Icons.logout, color: Colors.redAccent),
+                  SizedBox(width: 10),
+                  Text(
+                    'Log out',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          child: CircleAvatar(
+            radius: 25,
+            backgroundImage: NetworkImage(sampleUser.profilePicture),
+          ),
         ),
       ),
     ],
