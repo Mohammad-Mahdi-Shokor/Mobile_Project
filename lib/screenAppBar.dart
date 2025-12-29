@@ -1,126 +1,101 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/data.dart';
 
-AppBar ScreenAppBar(int index) {
+AppBar ScreenAppBar(
+  BuildContext context,
+  int index,
+  VoidCallback onToggleTheme,
+) {
+  final theme = Theme.of(context);
+  final colors = theme.colorScheme;
+
   if (index != 0) {
     return AppBar(
       backgroundColor: Colors.transparent,
       toolbarHeight: 100,
-      title: Text(
-        'Profile',
-        style: GoogleFonts.poppins(
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
+      title: Text('Profile', style: theme.textTheme.titleLarge),
+
       actions: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-          ),
+        TextButton(
           onPressed: () {},
-          child: const Text(
-            "Edit",
-            style: TextStyle(fontSize: 24, color: Colors.white),
-          ),
+          child: Text("Edit", style: theme.textTheme.titleMedium),
         ),
       ],
     );
   }
 
   return AppBar(
-    backgroundColor: const Color(0xFF3D5CFF),
     toolbarHeight: 100,
-    iconTheme: const IconThemeData(color: Colors.white),
+    iconTheme: IconThemeData(color: Colors.white),
     title: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
           'Hi, ${sampleUser.FirstName}',
-          style: GoogleFonts.poppins(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
         ),
         Text(
           "Let's start learning",
-          style: GoogleFonts.poppins(
-            fontSize: 16,
-            color: Colors.white70,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withOpacity(0.7),
           ),
         ),
       ],
     ),
     actions: [
       Padding(
-        padding: const EdgeInsets.only(right: 16.0),
+        padding: const EdgeInsets.only(right: 16),
         child: PopupMenuButton<String>(
-          color: const Color(0xFF1F1F39),
           offset: const Offset(0, 55),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          onSelected: (value) {},
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: 'achievements',
-              child: Row(
-                children: const [
-                  Icon(Icons.emoji_events, color: Color(0xFF3D5CFF)),
-                  SizedBox(width: 10),
-                  Text(
-                    'Achievements',
-                    style: TextStyle(color: Colors.white),
+          itemBuilder:
+              (context) => [
+                PopupMenuItem(
+                  value: 'achievements',
+                  child: Row(
+                    children: [
+                      Icon(Icons.emoji_events, color: colors.primary),
+                      const SizedBox(width: 10),
+                      const Text('Achievements'),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'account',
-              child: Row(
-                children: const [
-                  Icon(Icons.person, color: Color(0xFF3D5CFF)),
-                  SizedBox(width: 10),
-                  Text(
-                    'Account',
-                    style: TextStyle(color: Colors.white),
+                ),
+                PopupMenuItem(
+                  value: 'mode',
+                  onTap: onToggleTheme,
+                  child: Row(
+                    children: [
+                      Icon(Icons.brightness_6, color: colors.primary),
+                      const SizedBox(width: 10),
+                      const Text('Change Mode'),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            PopupMenuItem(
-              value: 'settings',
-              child: Row(
-                children: const [
-                  Icon(Icons.settings, color: Color(0xFF3D5CFF)),
-                  SizedBox(width: 10),
-                  Text(
-                    'Settings',
-                    style: TextStyle(color: Colors.white),
+                ),
+                PopupMenuItem(
+                  value: 'account',
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: colors.primary),
+                      const SizedBox(width: 10),
+                      const Text('Account'),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(height: 20),
-            PopupMenuItem(
-              value: 'logout',
-              child: Row(
-                children: const [
-                  Icon(Icons.logout, color: Colors.redAccent),
-                  SizedBox(width: 10),
-                  Text(
-                    'Log out',
-                    style: TextStyle(color: Colors.redAccent),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'logout',
+                  child: Row(
+                    children: const [
+                      Icon(Icons.logout, color: Colors.redAccent),
+                      SizedBox(width: 10),
+                      Text(
+                        'Log out',
+                        style: TextStyle(color: Colors.redAccent),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          ],
+                ),
+              ],
           child: CircleAvatar(
             radius: 25,
             backgroundImage: NetworkImage(sampleUser.profilePicture),

@@ -8,8 +8,8 @@ import 'package:mobile_project/settings_screen.dart';
 import 'learning_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
-  const NavigationScreen({super.key});
-
+  const NavigationScreen({super.key, required this.onToggleTheme});
+  final void Function() onToggleTheme;
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
@@ -30,6 +30,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
+  List<String> MenuItems = ["Chats", "Groups", "Communities"];
   Widget _navItem({
     required IconData icon,
     required String label,
@@ -51,8 +52,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   Drawer _buildDrawer() {
+    final theme = Theme.of(context);
     return Drawer(
-      backgroundColor: const Color(0xFF1F1F39),
+      backgroundColor: theme.drawerTheme.backgroundColor,
+
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,22 +67,27 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: theme.textTheme.bodyLarge!.color!,
                 ),
               ),
             ),
 
             ListTile(
-              leading: const Icon(Icons.book, color: Colors.white),
+              leading: Icon(
+                Icons.book,
+                color: theme.textTheme.bodyLarge!.color!,
+              ),
               title: Text(
                 'Courses',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: GoogleFonts.poppins(
+                  color: theme.textTheme.bodyLarge!.color!,
+                ),
               ),
               trailing: Icon(
                 coursesExpanded
                     ? Icons.keyboard_arrow_up
                     : Icons.keyboard_arrow_down,
-                color: Colors.white,
+                color: theme.textTheme.bodyLarge!.color!,
               ),
               onTap: () {
                 setState(() {
@@ -93,14 +101,16 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 (course) => Padding(
                   padding: const EdgeInsets.only(left: 40),
                   child: ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.circle,
                       size: 10,
-                      color: Colors.white,
+                      color: theme.textTheme.bodyLarge!.color!,
                     ),
                     title: Text(
                       course,
-                      style: GoogleFonts.poppins(color: Colors.white),
+                      style: GoogleFonts.poppins(
+                        color: theme.textTheme.bodyLarge!.color!,
+                      ),
                     ),
                     onTap: () {
                       Navigator.pop(context);
@@ -108,55 +118,42 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   ),
                 ),
               ),
-
-            ListTile(
-              leading: const Icon(Icons.chat, color: Colors.white),
-              title: Text(
-                'Chats',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.group, color: Colors.white),
-              title: Text(
-                'Groups',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-
-            ListTile(
-              leading: const Icon(Icons.public, color: Colors.white),
-              title: Text(
-                'Communities',
-                style: GoogleFonts.poppins(color: Colors.white),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
+            ...MenuItems.map((item) {
+              return ListTile(
+                leading: Icon(
+                  Icons.chat,
+                  color: theme.textTheme.bodyLarge!.color!,
+                ),
+                title: Text(
+                  item,
+                  style: GoogleFonts.poppins(
+                    color: theme.textTheme.bodyLarge!.color!,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              );
+            }),
 
             const Spacer(),
 
             ListTile(
-              leading: const Icon(Icons.settings, color: Colors.white),
+              leading: Icon(
+                Icons.settings,
+                color: theme.textTheme.bodyLarge!.color!,
+              ),
               title: Text(
                 'Settings',
-                style: GoogleFonts.poppins(color: Colors.white),
+                style: GoogleFonts.poppins(
+                  color: theme.textTheme.bodyLarge!.color!,
+                ),
               ),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const SettingsScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
                 );
               },
             ),
@@ -169,8 +166,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F39),
-      appBar: ScreenAppBar(_selectedIndex),
+      appBar: ScreenAppBar(context, _selectedIndex, widget.onToggleTheme),
+
       drawer: _selectedIndex == 0 ? _buildDrawer() : null,
       body: currentScreen,
       bottomNavigationBar: CurvedNavigationBar(

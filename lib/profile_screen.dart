@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/data.dart';
+import 'package:mobile_project/theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+    final theme = Theme.of(context);
     return Center(
       child: Column(
         spacing: 15,
@@ -24,7 +26,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Color.fromRGBO(217, 217, 217, 100),
+                color:
+                    theme.brightness == AppTheme.darkTheme.brightness
+                        ? Color.fromRGBO(217, 217, 217, 100)
+                        : Colors.black,
                 width: 3,
               ),
             ),
@@ -39,7 +44,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
             ),
           ),
           Text(
@@ -47,7 +51,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: GoogleFonts.spaceGrotesk(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
             ),
           ),
           Text(
@@ -55,7 +58,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: GoogleFonts.spaceGrotesk(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
             ),
           ),
           SizedBox(height: 10),
@@ -63,7 +65,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             width: width * 0.85,
             height: height * 0.3,
             decoration: BoxDecoration(
-              border: Border.all(color: Color.fromRGBO(217, 217, 217, 100)),
+              border: Border.all(
+                color:
+                    theme.brightness == AppTheme.darkTheme.brightness
+                        ? Color.fromRGBO(217, 217, 217, 100)
+                        : Colors.black,
+              ),
               borderRadius: BorderRadius.circular(20),
 
               color: Color.fromRGBO(47, 47, 66, 100),
@@ -97,8 +104,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Text(
                                 a.name,
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color:
+                                      theme.brightness ==
+                                              AppTheme.darkTheme.brightness
+                                          ? Color.fromRGBO(217, 217, 217, 100)
+                                          : Colors.black,
+
                                   fontSize: 8,
                                 ),
                               ),

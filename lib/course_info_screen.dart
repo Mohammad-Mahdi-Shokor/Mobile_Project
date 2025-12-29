@@ -9,18 +9,22 @@ class CourseInfoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F39),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back,
+            color: theme.textTheme.bodyLarge!.color!,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           course.title,
-          style: GoogleFonts.poppins(color: Colors.white),
+          style: GoogleFonts.poppins(color: theme.textTheme.bodyLarge!.color!),
         ),
       ),
       body: SingleChildScrollView(
@@ -44,13 +48,15 @@ class CourseInfoScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: theme.textTheme.bodyLarge!.color!,
               ),
             ),
             const SizedBox(height: 10),
             Text(
               course.about,
-              style: GoogleFonts.poppins(color: Colors.white70),
+              style: GoogleFonts.poppins(
+                color: theme.textTheme.bodyLarge!.color!,
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -59,7 +65,7 @@ class CourseInfoScreen extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: theme.textTheme.bodyLarge!.color!,
               ),
             ),
             const SizedBox(height: 12),
@@ -69,13 +75,18 @@ class CourseInfoScreen extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle,
-                        size: 18, color: Color(0xFF3D5CFF)),
+                    const Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: Color(0xFF3D5CFF),
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         section,
-                        style: GoogleFonts.poppins(color: Colors.white),
+                        style: GoogleFonts.poppins(
+                          color: theme.textTheme.bodyLarge!.color!,
+                        ),
                       ),
                     ),
                   ],
@@ -101,6 +112,7 @@ class CourseInfoScreen extends StatelessWidget {
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
               ),

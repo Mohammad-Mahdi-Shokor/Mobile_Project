@@ -3,13 +3,27 @@ import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    List<String> settingsItems = [
+      "Account",
+      "Privacy",
+      "Notifications",
+      "Appearance",
+    ];
+    final itemIcon = [
+      Icons.person,
+      Icons.lock,
+      Icons.notifications,
+      Icons.dark_mode,
+    ];
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F39),
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: AppBar(
         backgroundColor: const Color(0xFF3D5CFF),
+        iconTheme: IconThemeData(color: Colors.white),
         title: Text(
           'Settings',
           style: GoogleFonts.poppins(
@@ -20,34 +34,20 @@ class SettingsScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          ListTile(
-            leading: const Icon(Icons.person, color: Colors.white),
-            title: Text(
-              'Account',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.lock, color: Colors.white),
-            title: Text(
-              'Privacy',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications, color: Colors.white),
-            title: Text(
-              'Notifications',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.dark_mode, color: Colors.white),
-            title: Text(
-              'Appearance',
-              style: GoogleFonts.poppins(color: Colors.white),
-            ),
-          ),
+          ...settingsItems.map((item) {
+            return ListTile(
+              leading: Icon(
+                itemIcon[settingsItems.indexOf(item)],
+                color: theme.textTheme.bodyLarge!.color!,
+              ),
+              title: Text(
+                item,
+                style: GoogleFonts.poppins(
+                  color: theme.textTheme.bodyLarge!.color!,
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
