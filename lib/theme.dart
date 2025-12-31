@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // 🌙 DARK THEME
+  // 🌙 DARK THEME (UNCHANGED)
   static ThemeData darkTheme = ThemeData(
     brightness: Brightness.dark,
     useMaterial3: true,
@@ -28,51 +28,59 @@ class AppTheme {
     ),
 
     drawerTheme: const DrawerThemeData(backgroundColor: Color(0xFF1F1F39)),
-
-    popupMenuTheme: PopupMenuThemeData(
-      color: const Color(0xFF1F1F39),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      textStyle: GoogleFonts.poppins(color: Colors.white),
-    ),
-
     textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
     iconTheme: const IconThemeData(color: Colors.white),
   );
 
-  // 🌞 LIGHT THEME
+  // 🌞 LIGHT THEME (UPDATED)
   static ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     useMaterial3: true,
 
-    scaffoldBackgroundColor: const Color(0xFFF5F6FA),
+    // Background
+    scaffoldBackgroundColor: const Color(0xFFF7F9FC),
 
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF3D5CFF),
-      secondary: Color(0xFFE6E7FF),
+      primary: Color(0xFF3D5CFF), // Brand blue
+      secondary: Color(0xFFE6F2FF), // Containers / Cards
       surface: Colors.white,
-      onSurface: Colors.black,
+      onSurface: Color(0xFF1F1F39), // Primary text
     ),
 
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF3D5CFF),
+      backgroundColor: const Color(0xFF3D5CFF), // Brand app bar
       elevation: 0,
       titleTextStyle: GoogleFonts.poppins(
         fontSize: 22,
         fontWeight: FontWeight.bold,
-        color: Colors.black,
+        color: Colors.white,
       ),
-      iconTheme: const IconThemeData(color: Colors.black),
+      iconTheme: const IconThemeData(color: Colors.white),
     ),
 
     drawerTheme: const DrawerThemeData(backgroundColor: Colors.white),
 
-    popupMenuTheme: PopupMenuThemeData(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      textStyle: GoogleFonts.poppins(color: Colors.black),
+    navigationBarTheme: NavigationBarThemeData(
+      backgroundColor: Colors.white,
+      indicatorColor: const Color(0xFFCDEBFD),
+      iconTheme: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) {
+          return const IconThemeData(color: Color(0xFF3D5CFF));
+        }
+        return const IconThemeData(color: Color.fromRGBO(31, 31, 57, 0.6));
+      }),
+      labelTextStyle: WidgetStateProperty.all(
+        GoogleFonts.poppins(color: const Color(0xFF1F1F39)),
+      ),
     ),
 
-    textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
-    iconTheme: const IconThemeData(color: Colors.black),
+    textTheme: GoogleFonts.poppinsTextTheme(
+      ThemeData.light().textTheme.copyWith(
+        bodyLarge: const TextStyle(color: Color(0xFF1F1F39)),
+        bodyMedium: const TextStyle(color: Color.fromRGBO(31, 31, 57, 0.7)),
+      ),
+    ),
+
+    iconTheme: const IconThemeData(color: Color(0xFF1F1F39)),
   );
 }

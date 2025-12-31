@@ -13,12 +13,17 @@ AppBar ScreenAppBar(
     return AppBar(
       backgroundColor: Colors.transparent,
       toolbarHeight: 100,
-      title: Text('Profile', style: theme.textTheme.titleLarge),
+      title: Text(
+        'Profile',
+        style: theme.textTheme.titleLarge!.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      ),
 
       actions: [
         TextButton(
           onPressed: () {},
-          child: Text("Edit", style: theme.textTheme.titleMedium),
+          child: Text("Edit", style: theme.textTheme.titleMedium!),
         ),
       ],
     );

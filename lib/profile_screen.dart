@@ -62,60 +62,86 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           SizedBox(height: 10),
           Container(
-            width: width * 0.85,
+            width: 310,
             height: height * 0.3,
             decoration: BoxDecoration(
-              border: Border.all(
-                color:
-                    theme.brightness == AppTheme.darkTheme.brightness
-                        ? Color.fromRGBO(217, 217, 217, 100)
-                        : Colors.black,
-              ),
               borderRadius: BorderRadius.circular(20),
-
-              color: Color.fromRGBO(47, 47, 66, 100),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+              ),
+              color: Theme.of(context).colorScheme.surface,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(10),
+
               child: GridView.builder(
                 itemCount: achievements.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  mainAxisSpacing: width * 0.1,
-                  crossAxisSpacing: width * 0.1,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  mainAxisSpacing: 7,
+                  crossAxisSpacing: 7,
                   childAspectRatio: 1,
                 ),
                 itemBuilder: (context, index) {
                   final Achievement a = achievements[index];
+
+                  final theme = Theme.of(context);
+                  final isDark = theme.brightness == Brightness.dark;
+
                   return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
+                    padding: EdgeInsets.all(8),
+                    margin: EdgeInsets.all(8),
+                    decoration:
+                        isDark
+                            ? BoxDecoration(
+                              border: Border.all(
+                                width: 0.5,
+                                color:
+                                    theme.brightness ==
+                                            AppTheme.darkTheme.brightness
+                                        ? Color.fromRGBO(217, 217, 217, 100)
+                                        : Colors.black,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                            )
+                            : BoxDecoration(
+                              borderRadius: BorderRadius.circular(15),
+                              color: theme.colorScheme.secondary.withOpacity(
+                                isDark ? 0.15 : 1,
+                              ),
+                              border: Border.all(
+                                width: 0.5,
+                                color: theme.colorScheme.onSurface.withOpacity(
+                                  0.5,
+                                ),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      isDark
+                                          ? Colors.black.withOpacity(0.6)
+                                          : Colors.black.withOpacity(0.12),
+                                  blurRadius: isDark ? 6 : 8,
+                                  spreadRadius: 2,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         a.icon,
-                        Wrap(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                a.name,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color:
-                                      theme.brightness ==
-                                              AppTheme.darkTheme.brightness
-                                          ? Color.fromRGBO(217, 217, 217, 100)
-                                          : Colors.black,
-
-                                  fontSize: 8,
-                                ),
-                              ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 5),
+                          child: Text(
+                            a.name,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontSize: 9,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
