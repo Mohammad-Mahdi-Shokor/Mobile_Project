@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'package:flutter/material.dart';
 
 class Course {
@@ -95,74 +97,236 @@ class User {
 
 final List<Course> sampleCourses = [
   Course(
-    title: "Cybersecurity",
-    Description:
-        "Learn the fundamentals of protecting systems, networks, and data.",
-    NumberOfFinished: 12,
-    lessons: [
-      Lesson(
-        title: "Introduction to Cybersecurity",
-        Done: true,
-        questions: [
-          Question(
-            question: "What is cybersecurity?",
-            answers: [
-              Answer(
-                answer: "Protecting systems and networks from digital attacks",
-              ),
-              Answer(answer: "Developing mobile applications"),
-              Answer(answer: "Designing computer hardware"),
-            ],
-          ),
-          Question(
-            question: "Which of the following is a common cyber attack?",
-            answers: [
-              Answer(answer: "Phishing"),
-              Answer(answer: "Data modeling"),
-              Answer(answer: "UI testing"),
-            ],
-          ),
-        ],
-      ),
-      Lesson(
-        title: "Common Types of Attacks",
-        Done: false,
-        questions: [
-          Question(
-            question: "What does DDoS stand for?",
-            answers: [
-              Answer(answer: "Distributed Denial of Service"),
-              Answer(answer: "Direct Data Operating System"),
-              Answer(answer: "Dynamic Domain of Security"),
-            ],
-          ),
-        ],
-      ),
-      Lesson(
-        title: "White vs Black Box",
-        Done: false,
-        questions: [
-          Question(
-            question: "What is white Box Testing?",
-            answers: [
-              Answer(answer: "Testing with ability to view code"),
-              Answer(answer: "Soloh el hodaybeya"),
-              Answer(answer: "Shawarma djej"),
-            ],
-          ),
-        ],
-      ),
-    ],
-    about:
-        "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
-    imageUrl: "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
-    sections: [
-      "Introduction to Cybersecurity",
-      "Types of Cyber Attacks",
-      "Network Security Basics",
-      "Ethical Hacking Overview",
-    ],
-  ),
+  title: "Cybersecurity",
+  Description:
+      "Learn the fundamentals of protecting systems, networks, and data.",
+  NumberOfFinished: 12,
+  lessons: [
+    Lesson(
+      title: "Introduction to Cybersecurity",
+      Done: true,
+      questions: [
+        Question(
+          question: "What is cybersecurity?",
+          answers: [
+            Answer(answer: "Protecting systems and networks from digital attacks"),
+            Answer(answer: "Developing mobile applications"),
+            Answer(answer: "Designing computer hardware"),
+          ],
+        ),
+        Question(
+          question: "Why is cybersecurity important?",
+          answers: [
+            Answer(answer: "To protect sensitive data"),
+            Answer(answer: "To speed up computers"),
+            Answer(answer: "To improve battery life"),
+          ],
+        ),
+        Question(
+          question: "Which of these is part of cybersecurity?",
+          answers: [
+            Answer(answer: "Network protection"),
+            Answer(answer: "Painting software icons"),
+            Answer(answer: "Screen resolution adjustment"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Common Types of Attacks",
+      Done: false,
+      questions: [
+        Question(
+          question: "Which of the following is a common cyber attack?",
+          answers: [
+            Answer(answer: "Phishing"),
+            Answer(answer: "UI Testing"),
+            Answer(answer: "Database normalization"),
+          ],
+        ),
+        Question(
+          question: "What does ransomware do?",
+          answers: [
+            Answer(answer: "Locks files until payment is made"),
+            Answer(answer: "Deletes temporary files"),
+            Answer(answer: "Optimizes system performance"),
+          ],
+        ),
+        Question(
+          question: "What is social engineering?",
+          answers: [
+            Answer(answer: "Manipulating people to reveal confidential information"),
+            Answer(answer: "Encrypting files on a server"),
+            Answer(answer: "Upgrading software automatically"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Network Security",
+      Done: false,
+      questions: [
+        Question(
+          question: "What is a firewall used for?",
+          answers: [
+            Answer(answer: "To block unauthorized access"),
+            Answer(answer: "To store passwords"),
+            Answer(answer: "To run applications faster"),
+          ],
+        ),
+        Question(
+          question: "Which protocol secures data over the internet?",
+          answers: [
+            Answer(answer: "HTTPS"),
+            Answer(answer: "HTTP"),
+            Answer(answer: "FTP"),
+          ],
+        ),
+        Question(
+          question: "What is a VPN used for?",
+          answers: [
+            Answer(answer: "Secure remote connections"),
+            Answer(answer: "Faster downloads"),
+            Answer(answer: "Reducing device storage usage"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Authentication & Authorization",
+      Done: false,
+      questions: [
+        Question(
+          question: "What is multi-factor authentication?",
+          answers: [
+            Answer(answer: "Using multiple steps to verify identity"),
+            Answer(answer: "Logging in once"),
+            Answer(answer: "Sharing passwords"),
+          ],
+        ),
+        Question(
+          question: "What is the main purpose of authorization?",
+          answers: [
+            Answer(answer: "Determine access rights"),
+            Answer(answer: "Encrypt emails"),
+            Answer(answer: "Monitor CPU usage"),
+          ],
+        ),
+        Question(
+          question: "Which is a secure password practice?",
+          answers: [
+            Answer(answer: "Using complex and unique passwords"),
+            Answer(answer: "Reusing old passwords"),
+            Answer(answer: "Writing passwords on paper"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Malware & Threats",
+      Done: false,
+      questions: [
+        Question(
+          question: "Which of the following is malware?",
+          answers: [
+            Answer(answer: "Virus"),
+            Answer(answer: "Web browser"),
+            Answer(answer: "Spreadsheet"),
+          ],
+        ),
+        Question(
+          question: "What is spyware?",
+          answers: [
+            Answer(answer: "Software that secretly monitors activity"),
+            Answer(answer: "A firewall configuration"),
+            Answer(answer: "A type of backup software"),
+          ],
+        ),
+        Question(
+          question: "What is a zero-day exploit?",
+          answers: [
+            Answer(answer: "A vulnerability that is unknown to developers"),
+            Answer(answer: "A patch for malware"),
+            Answer(answer: "A secure login method"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Ethical Hacking Overview",
+      Done: false,
+      questions: [
+        Question(
+          question: "What is ethical hacking?",
+          answers: [
+            Answer(answer: "Hacking with permission to test security"),
+            Answer(answer: "Hacking for fun"),
+            Answer(answer: "Hacking to steal data"),
+          ],
+        ),
+        Question(
+          question: "What is a penetration test?",
+          answers: [
+            Answer(answer: "Testing system vulnerabilities"),
+            Answer(answer: "Installing antivirus software"),
+            Answer(answer: "Updating operating systems"),
+          ],
+        ),
+        Question(
+          question: "Which tool is commonly used in ethical hacking?",
+          answers: [
+            Answer(answer: "Nmap"),
+            Answer(answer: "Word Processor"),
+            Answer(answer: "Video Editor"),
+          ],
+        ),
+      ],
+    ),
+    Lesson(
+      title: "Cybersecurity Best Practices",
+      Done: false,
+      questions: [
+        Question(
+          question: "What should you do before clicking a link in an email?",
+          answers: [
+            Answer(answer: "Verify the sender and URL"),
+            Answer(answer: "Click immediately"),
+            Answer(answer: "Ignore the email entirely"),
+          ],
+        ),
+        Question(
+          question: "What is a safe way to store passwords?",
+          answers: [
+            Answer(answer: "Use a password manager"),
+            Answer(answer: "Write them on sticky notes"),
+            Answer(answer: "Reuse the same password"),
+          ],
+        ),
+        Question(
+          question: "Why should software be regularly updated?",
+          answers: [
+            Answer(answer: "To patch security vulnerabilities"),
+            Answer(answer: "To slow down the computer"),
+            Answer(answer: "To delete user data"),
+          ],
+        ),
+      ],
+    ),
+  ],
+  about:
+      "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
+  imageUrl: "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
+  sections: [
+    "Introduction to Cybersecurity",
+    "Types of Cyber Attacks",
+    "Network Security Basics",
+    "Authentication & Authorization",
+    "Malware & Threats",
+    "Ethical Hacking Overview",
+    "Cybersecurity Best Practices",
+  ],
+),
+
   Course(
     title: "Mobile Development",
     Description:

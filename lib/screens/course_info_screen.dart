@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/data.dart';
+import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/screens/lesson_path_screen.dart';
 
 class CourseInfoScreen extends StatelessWidget {
   final Course course;
@@ -99,7 +100,14 @@ class CourseInfoScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LessonPathScreen(course: course),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3D5CFF),
                   padding: const EdgeInsets.symmetric(vertical: 14),

@@ -1,12 +1,12 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/data.dart';
-import 'package:mobile_project/profile_screen.dart';
-import 'package:mobile_project/screenAppBar.dart';
-import 'package:mobile_project/settings_screen.dart';
-import 'course_info_screen.dart';
-import 'learning_screen.dart';
+import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/screens/profile_screen.dart';
+import 'package:mobile_project/widgets/screenAppBar.dart';
+import 'package:mobile_project/screens/settings_screen.dart';
+import 'screens/course_info_screen.dart';
+import 'screens/learning_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key, required this.onToggleTheme});

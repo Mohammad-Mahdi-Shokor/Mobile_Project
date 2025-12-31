@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/circularIndicator.dart';
-import 'package:mobile_project/course_info_screen.dart';
-import 'package:mobile_project/data.dart';
+import 'package:mobile_project/widgets/circularIndicator.dart';
+import 'package:mobile_project/screens/course_info_screen.dart';
+import 'package:mobile_project/models/data.dart';
 
 class LearningScreen extends StatelessWidget {
   const LearningScreen({super.key});
@@ -65,7 +65,7 @@ class LearningScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                         width: double.infinity,
                         child:
                             sampleUser.registedCoursesIndexes.contains(index)

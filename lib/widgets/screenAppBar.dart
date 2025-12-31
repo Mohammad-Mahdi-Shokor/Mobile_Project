@@ -1,5 +1,7 @@
+// ignore_for_file: file_names
+
 import 'package:flutter/material.dart';
-import 'package:mobile_project/data.dart';
+import 'package:mobile_project/models/data.dart';
 
 AppBar ScreenAppBar(
   BuildContext context,

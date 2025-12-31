@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_project/navigation_screen.dart';
-import 'package:mobile_project/theme.dart';
+import 'package:mobile_project/widgets/theme.dart';
 
 void main() {
   runApp(const MyApp());
