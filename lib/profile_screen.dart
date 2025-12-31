@@ -45,6 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
           ),
           Text(
             sampleUser.tag,

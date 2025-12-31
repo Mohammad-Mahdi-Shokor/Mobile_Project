@@ -5,6 +5,7 @@ import 'package:mobile_project/data.dart';
 import 'package:mobile_project/profile_screen.dart';
 import 'package:mobile_project/screenAppBar.dart';
 import 'package:mobile_project/settings_screen.dart';
+import 'course_info_screen.dart';
 import 'learning_screen.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -19,8 +20,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Widget currentScreen = const LearningScreen();
 
   bool coursesExpanded = false;
-  final List<String> courses =
-      sampleCourses.map((course) => course.title).toList();
+  final List<Course> courses = sampleCourses;
 
   void switchScreen() {
     if (_selectedIndex == 0) {
@@ -37,16 +37,21 @@ class _NavigationScreenState extends State<NavigationScreen> {
     required bool isSelected,
   }) {
     return Padding(
-      padding: EdgeInsets.only(top: isSelected ? 0 : 10),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 30, color: Colors.white),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
-        ],
+      padding: EdgeInsets.only(
+        top: isSelected ? 5 : 10,
+        bottom: isSelected ? 10 : 0,
+      ),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30, color: Colors.white),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -107,13 +112,21 @@ class _NavigationScreenState extends State<NavigationScreen> {
                       color: theme.textTheme.bodyLarge!.color!,
                     ),
                     title: Text(
-                      course,
+                      course.title,
                       style: GoogleFonts.poppins(
                         color: theme.textTheme.bodyLarge!.color!,
                       ),
                     ),
                     onTap: () {
                       Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (ctx) {
+                            return CourseInfoScreen(course: course);
+                          },
+                        ),
+                      );
                     },
                   ),
                 ),
