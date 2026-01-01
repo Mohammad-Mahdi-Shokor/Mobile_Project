@@ -1,8 +1,9 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/models/data.dart' hide User;
 import 'package:mobile_project/screens/profile_screen.dart';
+import 'package:mobile_project/services/dataBase.dart' hide Course;
 import 'package:mobile_project/widgets/screenAppBar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
 import 'screens/course_info_screen.dart';
@@ -21,6 +22,18 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   bool coursesExpanded = false;
   final List<Course> courses = sampleCourses;
+  final userRepo = UserRepository();
+  User? user;
+  @override
+  void initState() {
+    super.initState();
+    _initializeUser();
+  }
+
+  void _initializeUser() async {
+    user = await userRepo.getUser(1);
+    setState(() {});
+  }
 
   void switchScreen() {
     if (_selectedIndex == 0) {
@@ -179,7 +192,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: ScreenAppBar(context, _selectedIndex, widget.onToggleTheme),
+      appBar: ScreenAppBar(
+        context,
+        _selectedIndex,
+        widget.onToggleTheme,
+        user!.firstName,
+      ),
 
       drawer: _selectedIndex == 0 ? _buildDrawer() : null,
       body: currentScreen,

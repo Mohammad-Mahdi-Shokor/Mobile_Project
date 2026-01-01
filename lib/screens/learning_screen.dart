@@ -1,13 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project/services/dataBase.dart';
 import 'package:mobile_project/widgets/circularIndicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
-import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/models/data.dart' hide User;
 
-class LearningScreen extends StatelessWidget {
+class LearningScreen extends StatefulWidget {
   const LearningScreen({super.key});
 
   @override
+  State<LearningScreen> createState() => _LearningScreenState();
+}
+
+class _LearningScreenState extends State<LearningScreen> {
+  final userRepo = UserRepository();
+
+  User? user;
+  final courseRepo = CourseRepository();
+  List<Map<String, dynamic>> registeredCourses = [];
+  void _loadRegisteredCourses() async {
+    if (user != null) {
+      final courseRepo = CourseRepository();
+      final lessonRepo = LessonRepository();
+
+      // Fetch registered courses for the user
+      List<Map<String, dynamic>> registeredCourses = await courseRepo
+          .getUserCourses(user!.id!);
+
+      // Fetch progress for each course
+      for (var course in registeredCourses) {
+        int finishedLessons = await lessonRepo.countFinishedLessons(
+          user!.id!,
+          course['id'],
+        );
+        int totalLessons =
+            course['total_lessons']; // Ensure this is fetched in `getUserCourses`
+
+        print(
+          'Course: ${course['title']}, Finished: $finishedLessons, Total: $totalLessons',
+        );
+      }
+
+      setState(() {}); // Update the UI if needed
+    }
+  }
+
+  void _initializeUser() async {
+    user = await userRepo.getUser(1);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeUser();
+    _loadRegisteredCourses();
+  }
+
   Widget build(BuildContext context) {
     final List<String> courses =
         sampleCourses.map((course) => course.title).toList();
@@ -68,7 +117,9 @@ class LearningScreen extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child:
-                            sampleUser.registedCoursesIndexes.contains(index)
+                            registeredCourses.any(
+                                  (course) => course['id'] == index,
+                                )
                                 ? continueCourse(
                                   sampleUser
                                       .registeredCourses[index]

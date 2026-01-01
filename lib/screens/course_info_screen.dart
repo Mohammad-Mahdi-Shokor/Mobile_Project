@@ -116,7 +116,7 @@ class CourseInfoScreen extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  "Continue",
+                  "Register",
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

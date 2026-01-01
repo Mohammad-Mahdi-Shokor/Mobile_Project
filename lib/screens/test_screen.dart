@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/widgets/theme.dart';
 import 'package:mobile_project/models/data.dart';
 
 class TestScreen extends StatefulWidget {
@@ -64,15 +63,17 @@ class _TestScreenState extends State<TestScreen> {
               const SizedBox(height: 40),
               ...List.generate(currentAnswers.length, (i) {
                 bool isSelected = i == selectedIndex;
-                bool isCorrect = currentAnswers[i].answer == question.answers[0].answer;
+                bool isCorrect =
+                    currentAnswers[i].answer == question.answers[0].answer;
 
                 Color bgColor;
                 if (!answered) {
                   bgColor = theme.colorScheme.secondary;
                 } else {
-                  bgColor = isSelected
-                      ? (isCorrect ? Colors.green : Colors.red)
-                      : theme.colorScheme.secondary;
+                  bgColor =
+                      isSelected
+                          ? (isCorrect ? Colors.green : Colors.red)
+                          : theme.colorScheme.secondary;
                 }
 
                 return Padding(
@@ -81,10 +82,14 @@ class _TestScreenState extends State<TestScreen> {
                     color: bgColor,
                     borderRadius: BorderRadius.circular(12),
                     child: InkWell(
-                      onTap: answered ? null : () => _selectAnswer(i, isCorrect),
+                      onTap:
+                          answered ? null : () => _selectAnswer(i, isCorrect),
                       borderRadius: BorderRadius.circular(12),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 24,
+                        ),
                         alignment: Alignment.center,
                         child: Text(
                           currentAnswers[i].answer,

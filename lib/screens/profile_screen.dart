@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/models/data.dart' hide User;
+import 'package:mobile_project/services/dataBase.dart';
 import 'package:mobile_project/widgets/theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -13,11 +14,25 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   List<Achievement> achievements = sampleAchievements;
   // yale fo2 sample achievements, menchelon later on :)
+  final userRepo = UserRepository();
+  User? user;
+  void _initializeUser() async {
+    user = await userRepo.getUser(1);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeUser();
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     final theme = Theme.of(context);
+
     return Center(
       child: Column(
         spacing: 15,
@@ -40,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           Text(
-            sampleUser.username,
+            user!.username,
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -48,14 +63,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             textAlign: TextAlign.center,
           ),
           Text(
-            sampleUser.tag,
+            user!.tag,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            "${sampleUser.age}, ${sampleUser.Gender}",
+            "${user!.age}, ${sampleUser.Gender}",
             style: GoogleFonts.spaceGrotesk(
               fontSize: 13,
               fontWeight: FontWeight.bold,

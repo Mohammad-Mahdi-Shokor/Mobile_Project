@@ -7,6 +7,7 @@ AppBar ScreenAppBar(
   BuildContext context,
   int index,
   VoidCallback onToggleTheme,
+  String firstName,
 ) {
   final theme = Theme.of(context);
   final colors = theme.colorScheme;
@@ -39,7 +40,7 @@ AppBar ScreenAppBar(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Hi, ${sampleUser.FirstName}',
+          'Hi, $firstName',
           style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
         ),
         Text(
