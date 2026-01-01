@@ -19,15 +19,27 @@ class _TestScreenState extends State<TestScreen> {
   int correctAnswers = 0;
   bool answered = false;
   int selectedIndex = -1;
+  late List<Answer> currentAnswers;
+
+  @override
+  void initState() {
+    super.initState();
+    _shuffleCurrentAnswers();
+  }
+
+  void _shuffleCurrentAnswers() {
+    final question = widget.questions[currentIndex];
+    List<Answer> answers = List.from(question.answers);
+    Answer correct = answers.removeAt(0);
+    answers.shuffle();
+    answers.insert(Random().nextInt(answers.length + 1), correct);
+    currentAnswers = answers;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final question = widget.questions[currentIndex];
-
-    // Shuffle answers visually but keep first answer as correct
-    List<Answer> answers = List.from(question.answers);
-    answers.shuffle(Random(currentIndex));
 
     return Scaffold(
       appBar: AppBar(
@@ -50,9 +62,9 @@ class _TestScreenState extends State<TestScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              ...List.generate(answers.length, (i) {
+              ...List.generate(currentAnswers.length, (i) {
                 bool isSelected = i == selectedIndex;
-                bool isCorrect = answers[i].answer == question.answers[0].answer;
+                bool isCorrect = currentAnswers[i].answer == question.answers[0].answer;
 
                 Color bgColor;
                 if (!answered) {
@@ -75,7 +87,7 @@ class _TestScreenState extends State<TestScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                         alignment: Alignment.center,
                         child: Text(
-                          answers[i].answer,
+                          currentAnswers[i].answer,
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 18,
@@ -108,6 +120,7 @@ class _TestScreenState extends State<TestScreen> {
           currentIndex++;
           answered = false;
           selectedIndex = -1;
+          _shuffleCurrentAnswers();
         });
       } else {
         int score = ((correctAnswers / widget.questions.length) * 100).round();

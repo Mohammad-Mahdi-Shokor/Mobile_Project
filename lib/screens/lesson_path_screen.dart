@@ -195,8 +195,12 @@ class _CourseNodeState extends State<CourseNode> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.yellow.withOpacity(0.8),
                         shape: BoxShape.circle,
+                        color: widget.percentage < 50
+                            ? Colors.red.withOpacity(0.8)
+                            : widget.percentage < 80
+                                ? Colors.yellow.withOpacity(0.8)
+                                : Colors.green.withOpacity(0.8),
                       ),
                       child: Text(
                         '${widget.percentage}%',
