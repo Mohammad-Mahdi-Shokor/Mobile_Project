@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/lesson_path_screen.dart';
-import '../models/course.dart';
 import '../services/database_helper.dart';
 import '../services/registered_course.dart';
 

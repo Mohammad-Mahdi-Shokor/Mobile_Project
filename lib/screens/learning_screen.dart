@@ -4,7 +4,6 @@ import 'package:mobile_project/widgets/circularIndicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
 import 'package:mobile_project/models/data.dart';
 import '../services/database_helper.dart';
-import '../services/registered_course.dart';
 
 class LearningScreen extends StatefulWidget {
   const LearningScreen({super.key});
@@ -42,17 +41,6 @@ class _LearningScreenState extends State<LearningScreen> {
     return _registeredCourses.any((course) => course.title == courseTitle);
   }
 
-  // Helper to find matching RegisteredCourse from sample data
-  RegisteredCourse? _findRegisteredCourseByTitle(String title) {
-    try {
-      return registeredCoursesWithProgress.firstWhere(
-        (course) => course.title == title,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     const double cardWidth = 160;
@@ -87,7 +75,10 @@ class _LearningScreenState extends State<LearningScreen> {
                           builder:
                               (_) => CourseInfoScreen(course: sampleCourse),
                         ),
-                      );
+                      ).then((_) {
+                        // Refresh data when returning
+                        _loadRegisteredCourses();
+                      });
                     },
                     child: Container(
                       padding: const EdgeInsets.all(10),

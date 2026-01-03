@@ -8,7 +8,6 @@ import 'package:mobile_project/widgets/screenAppBar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
 import 'screens/course_info_screen.dart';
 import 'screens/learning_screen.dart';
-import 'services/database_helper.dart';
 import 'services/user_preferences_services.dart';
 
 class NavigationScreen extends StatefulWidget {
@@ -25,40 +24,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   final List<RegisteredCourse> courses = registeredCoursesWithProgress;
   late List<RegisteredCourse> registeredCourses = [];
   late Widget currentScreen;
-  List<Course> _registered = [];
-  final _databaseService = DatabaseService();
-  final _titleController = TextEditingController();
-  final _indexController = TextEditingController();
-
-  Future<void> _loadCourses() async {
-    setState(() => _isLoading = true);
-    final courses = await _databaseService.getCourses();
-    setState(() {
-      _registered = courses;
-      _isLoading = false;
-    });
-  }
-
-  Future<void> _addCourse() async {
-    if (_titleController.text.isEmpty) return;
-
-    final index =
-        _indexController.text.isNotEmpty
-            ? int.tryParse(_indexController.text) ?? _registered.length
-            : _registered.length;
-
-    final newCourse = Course(title: _titleController.text, courseIndex: index);
-
-    await _databaseService.insertCourse(newCourse);
-
-    _titleController.clear();
-    _indexController.clear();
-    _loadCourses();
-
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Course added successfully')));
-  }
 
   @override
   void initState() {
