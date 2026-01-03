@@ -11,16 +11,11 @@ import 'services/user_preferences_services.dart';
 
 void main() async {
   // Initialize sqflite for desktop platforms
+  WidgetsFlutterBinding.ensureInitialized();
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
-
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Database initialization
-  final dbHelper = RegisteredCourseDatabaseHelper.instance;
-  await dbHelper.resetDatabase(); // This will delete existing data
 
   runApp(const MyApp());
 }

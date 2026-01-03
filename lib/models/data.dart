@@ -48,9 +48,11 @@ import '../services/registered_course.dart';
 class Lesson {
   final String title;
   final List<Question> questions;
-  final bool Done;
+  final bool done; // Changed `Done` to `done` for naming convention consistency
+  int get numberOfQuestions => questions.length; // Dynamically calculated
+  int numberOfAnswered = 0;
 
-  Lesson({required this.title, required this.questions, required this.Done});
+  Lesson({required this.title, required this.questions, required this.done});
 }
 
 class Question {
@@ -308,7 +310,7 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     totalLessons: 7,
     about:
         "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
-    imageUrl: "https://cdn-icons-png.flaticon.com/512/3064/3064197.png",
+    imageUrl: "https://cdn-icons-png.freepik.com/512/8460/8460433.png",
     sections: [
       "Introduction to Cybersecurity",
       "Types of Cyber Attacks",
@@ -345,7 +347,7 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     totalLessons: 4,
     about:
         "This course explores the fundamental laws governing matter, energy, and motion, helping you understand how the universe works.",
-    imageUrl: "https://cdn-icons-png.flaticon.com/512/2942/2942139.png",
+    imageUrl: "https://cdn-icons-png.flaticon.com/512/1467/1467187.png",
     sections: [
       "Classical Mechanics",
       "Energy & Work",
@@ -377,7 +379,7 @@ final List<List<Lesson>> allCourseLessons = [
   [
     Lesson(
       title: "Introduction to Cybersecurity",
-      Done: true,
+      done: true,
       questions: [
         Question(
           question: "What is cybersecurity?",
@@ -409,7 +411,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Common Types of Attacks",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "Which of the following is a common cyber attack?",
@@ -441,7 +443,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Network Security",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "What is a firewall used for?",
@@ -471,7 +473,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Authentication & Authorization",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "What is multi-factor authentication?",
@@ -501,7 +503,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Malware & Threats",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "Which of the following is malware?",
@@ -531,7 +533,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Ethical Hacking Overview",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "What is ethical hacking?",
@@ -561,7 +563,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Cybersecurity Best Practices",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "What should you do before clicking a link in an email?",
@@ -595,7 +597,7 @@ final List<List<Lesson>> allCourseLessons = [
   [
     Lesson(
       title: "Mobile App Basics",
-      Done: true,
+      done: true,
       questions: [
         Question(
           question: "What is Flutter mainly used for?",
@@ -609,7 +611,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Native vs Cross Platform",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "Which framweork is well known to be cross platform?",
@@ -623,7 +625,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "State Management",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "Which is a popular state management approach?",
@@ -641,7 +643,7 @@ final List<List<Lesson>> allCourseLessons = [
   [
     Lesson(
       title: "Classical Mechanics",
-      Done: true,
+      done: true,
       questions: [
         Question(
           question: "What does Newton's First Law describe?",
@@ -655,7 +657,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Energy and Work",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "What is the SI unit of energy?",
@@ -673,7 +675,7 @@ final List<List<Lesson>> allCourseLessons = [
   [
     Lesson(
       title: "Introduction to Philosophy",
-      Done: true,
+      done: true,
       questions: [
         Question(
           question: "What is philosophy mainly concerned with?",
@@ -687,7 +689,7 @@ final List<List<Lesson>> allCourseLessons = [
     ),
     Lesson(
       title: "Ethics",
-      Done: false,
+      done: false,
       questions: [
         Question(
           question: "Ethics is the study of:",

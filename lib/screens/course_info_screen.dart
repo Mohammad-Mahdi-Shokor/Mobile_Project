@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/lesson_path_screen.dart';
-import 'package:mobile_project/services/registered_course.dart';
-
+import '../models/course.dart';
 import '../services/database_helper.dart';
+import '../services/registered_course.dart';
 
 class CourseInfoScreen extends StatefulWidget {
   final RegisteredCourse course;
@@ -15,152 +15,129 @@ class CourseInfoScreen extends StatefulWidget {
 }
 
 class _CourseInfoScreenState extends State<CourseInfoScreen> {
-  final RegisteredCourseDatabaseHelper _dbHelper =
-      RegisteredCourseDatabaseHelper.instance;
-
-  late List<RegisteredCourse> registeredCourses = [];
-  bool isLoading = true;
-  bool isCourseRegistered = false;
-
+  bool _isLoading = false;
+  bool _isCourseRegistered = false;
+  List<Course> _registeredCourses = [];
+  final DatabaseService _databaseService = DatabaseService();
+  late int courseIndex = 0;
   @override
   void initState() {
     super.initState();
-    _checkIfRegistered();
+    _checkIfCourseRegistered();
+    setState(() {
+      courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
+    });
   }
 
-  Future<void> _checkIfRegistered() async {
-    setState(() => isLoading = true);
+  Future<void> _checkIfCourseRegistered() async {
+    setState(() => _isLoading = true);
 
     try {
-      // Load all registered courses
-      registeredCourses = await _dbHelper.getAllCourses();
-
-      // Check if this specific course is already registered
-      // Compare by title since ID might be null for new courses
-      isCourseRegistered = registeredCourses.any(
-        (registeredCourse) => registeredCourse.title == widget.course.title,
-      );
-
-      print(
-        '📊 Course "${widget.course.title}" is registered: $isCourseRegistered',
-      );
-      print('📚 Total registered courses: ${registeredCourses.length}');
+      // Get all registered courses from database
+      final courses = await _databaseService.getCourses();
+      setState(() {
+        _registeredCourses = courses;
+        // Check if current course is already registered (by title)
+        _isCourseRegistered = courses.any(
+          (course) => course.title == widget.course.title,
+        );
+        _isLoading = false;
+      });
     } catch (e) {
-      print('❌ Error checking registration: $e');
-    } finally {
-      setState(() => isLoading = false);
+      setState(() => _isLoading = false);
+      print("Error checking course registration: $e");
     }
   }
 
   Future<void> _registerCourse() async {
-    if (isCourseRegistered) {
-      print('⚠️ Course already registered!');
-      return;
-    }
+    if (_isCourseRegistered) return;
 
-    setState(() => isLoading = true);
+    setState(() => _isLoading = true);
 
     try {
-      // Check again to make sure it's not already registered
-      final alreadyRegistered = await _dbHelper.isCourseRegistered(
-        widget.course.title,
-      );
-
-      if (alreadyRegistered) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'You already registered for "${widget.course.title}"',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        setState(() {
-          isCourseRegistered = true;
-          isLoading = false;
-        });
-        return;
-      }
-
-      // Create a new RegisteredCourse with proper values
-      final newCourse = RegisteredCourse(
+      // Use the next available index (current count)
+      final newCourse = Course(
         title: widget.course.title,
-        description: widget.course.description,
-        numberOfFinishedLessons: 0, // Start with 0
-        totalLessons: widget.course.sections.length, // Use sections count
-        about: widget.course.about,
-        imageUrl: widget.course.imageUrl,
-        sections: widget.course.sections, // Set current date
+        courseIndex: _registeredCourses.length,
       );
 
-      // Insert into database
-      final insertedId = await _dbHelper.insertCourse(newCourse);
-      print('✅ Course registered successfully! ID: $insertedId');
+      await _databaseService.insertCourse(newCourse);
 
-      // Update state
       setState(() {
-        isCourseRegistered = true;
-        isLoading = false;
+        _isCourseRegistered = true;
+        _isLoading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '🎉 Successfully registered for "${widget.course.title}"',
-          ),
+          content: Text('Course registered successfully!'),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
         ),
       );
     } catch (e) {
-      print('❌ Error registering course: $e');
-      setState(() => isLoading = false);
-
+      setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to register: ${e.toString()}'),
+          content: Text('Error registering course: $e'),
           backgroundColor: Colors.red,
         ),
       );
     }
   }
 
-  Future<void> _continueToLessonPath() async {
-    // Find the registered course from database
-    final registeredCourse = await _dbHelper.getCourseByTitle(
-      widget.course.title,
-    );
+  Future<void> _unregisterCourse() async {
+    if (!_isCourseRegistered) return;
 
-    if (registeredCourse != null) {
+    setState(() => _isLoading = true);
+
+    try {
+      // Find the database course ID to delete
+      final courseToDelete = _registeredCourses.firstWhere(
+        (course) => course.title == widget.course.title,
+      );
+
+      if (courseToDelete.id != null) {
+        await _databaseService.deleteCourse(courseToDelete.id!);
+      }
+
+      setState(() {
+        _isCourseRegistered = false;
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Course unregistered!'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print("Error unregistering course: $e");
+    }
+  }
+
+  void _navigateToLessonPath() {
+    if (!_isCourseRegistered) {
+      // Register first, then navigate
+      _registerCourse().then((_) {
+        if (_isCourseRegistered) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => LessonPathScreen(course: widget.course),
+            ),
+          );
+        }
+      });
+    } else {
+      // Already registered, just navigate
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder:
-              (_) => LessonPathScreen(
-                course: registeredCourse,
-                // Pass the original course for lessons if needed
-                originalCourse: _findOriginalCourse(widget.course.title),
-              ),
+          builder: (_) => LessonPathScreen(course: widget.course),
         ),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Course not found in registered courses'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  // Helper method to find original course from sample data
-  RegisteredCourse? _findOriginalCourse(String title) {
-    try {
-      return registeredCoursesWithProgress.firstWhere(
-        (course) => course.title == title,
-      );
-    } catch (e) {
-      return null;
     }
   }
 
@@ -184,9 +161,17 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
           widget.course.title,
           style: GoogleFonts.poppins(color: theme.textTheme.bodyLarge!.color!),
         ),
+        actions: [
+          if (_isCourseRegistered)
+            IconButton(
+              icon: Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _isLoading ? null : _unregisterCourse,
+              tooltip: 'Unregister from course',
+            ),
+        ],
       ),
       body:
-          isLoading
+          _isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
@@ -194,34 +179,37 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Course Image
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child:
-                          widget.course.imageUrl.startsWith('http')
-                              ? Image.network(
-                                widget.course.imageUrl,
-                                height: 180,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 180,
-                                    width: double.infinity,
-                                    color: Colors.grey[200],
-                                    child: Icon(
-                                      Icons.book,
-                                      size: 60,
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                },
-                              )
-                              : Image.asset(
-                                widget.course.imageUrl,
-                                height: 180,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
+                    Center(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+
+                        child:
+                            widget.course.imageUrl.startsWith('http')
+                                ? Image.network(
+                                  widget.course.imageUrl,
+                                  height: 180,
+                                  width: 180,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      height: 180,
+                                      width: 100,
+                                      color: Colors.grey[200],
+                                      child: Icon(
+                                        Icons.book,
+                                        size: 60,
+                                        color: Colors.grey,
+                                      ),
+                                    );
+                                  },
+                                )
+                                : Image.asset(
+                                  widget.course.imageUrl,
+                                  height: 180,
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -250,7 +238,8 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                         _buildStatItem(
                           icon: Icons.menu_book,
                           label: 'Lessons',
-                          value: widget.course.sections.length.toString(),
+                          value:
+                              allCourseLessons[courseIndex].length.toString(),
                         ),
                         _buildStatItem(
                           icon: Icons.schedule,
@@ -276,9 +265,8 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-
-                    ...widget.course.sections.map(
-                      (section) => Padding(
+                    ...allCourseLessons[courseIndex].map(
+                      (lesson) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Row(
                           children: [
@@ -286,14 +274,14 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                               Icons.check_circle,
                               size: 18,
                               color:
-                                  isCourseRegistered
-                                      ? Color(0xFF3D5CFF)
+                                  _isCourseRegistered
+                                      ? const Color(0xFF3D5CFF)
                                       : Colors.grey,
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                section,
+                                lesson.title,
                                 style: GoogleFonts.poppins(
                                   color: theme.textTheme.bodyLarge!.color!,
                                 ),
@@ -304,18 +292,40 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
 
+                    // hayde lal sections mne2dar nraje3a
+                    // ...widget.course.sections.map(
+                    //   (section) => Padding(
+                    //     padding: const EdgeInsets.only(bottom: 10),
+                    //     child: Row(
+                    //       children: [
+                    //         Icon(
+                    //           Icons.check_circle,
+                    //           size: 18,
+                    //           color:
+                    //               _isCourseRegistered
+                    //                   ? const Color(0xFF3D5CFF)
+                    //                   : Colors.grey,
+                    //         ),
+                    //         const SizedBox(width: 10),
+                    //         Expanded(
+                    //           child: Text(
+                    //             section,
+                    //             style: GoogleFonts.poppins(
+                    //               color: theme.textTheme.bodyLarge!.color!,
+                    //             ),
+                    //           ),
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(height: 40),
 
                     // Action Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed:
-                            isLoading
-                                ? null
-                                : isCourseRegistered
-                                ? _continueToLessonPath
-                                : _registerCourse,
+                        onPressed: _isLoading ? null : _navigateToLessonPath,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF3D5CFF),
                           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -325,7 +335,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                           disabledBackgroundColor: Colors.grey,
                         ),
                         child:
-                            isLoading
+                            _isLoading
                                 ? SizedBox(
                                   height: 20,
                                   width: 20,
@@ -337,7 +347,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                                   ),
                                 )
                                 : Text(
-                                  isCourseRegistered
+                                  _isCourseRegistered
                                       ? "Continue Learning"
                                       : "Register Now",
                                   style: GoogleFonts.poppins(
@@ -350,7 +360,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                     ),
 
                     // Already registered message
-                    if (isCourseRegistered)
+                    if (_isCourseRegistered)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),
                         child: Row(
@@ -361,7 +371,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                               color: Colors.green,
                               size: 16,
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               'Already registered',
                               style: GoogleFonts.poppins(
@@ -385,8 +395,8 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
   }) {
     return Column(
       children: [
-        Icon(icon, size: 30, color: Color(0xFF3D5CFF)),
-        SizedBox(height: 4),
+        Icon(icon, size: 30, color: const Color(0xFF3D5CFF)),
+        const SizedBox(height: 4),
         Text(
           value,
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),

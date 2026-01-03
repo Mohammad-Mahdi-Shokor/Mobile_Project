@@ -1,96 +1,138 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/services/registered_course.dart';
 import 'package:mobile_project/widgets/circularIndicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
 import 'package:mobile_project/models/data.dart';
+import '../services/database_helper.dart';
+import '../services/registered_course.dart';
 
-class LearningScreen extends StatelessWidget {
-  const LearningScreen({super.key, required this.registeredCourses});
-  final List<RegisteredCourse> registeredCourses;
+class LearningScreen extends StatefulWidget {
+  const LearningScreen({super.key});
+
+  @override
+  State<LearningScreen> createState() => _LearningScreenState();
+}
+
+class _LearningScreenState extends State<LearningScreen> {
+  List<Course> _registeredCourses = [];
+  bool _isLoading = true;
+  final DatabaseService _databaseService = DatabaseService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRegisteredCourses();
+  }
+
+  Future<void> _loadRegisteredCourses() async {
+    setState(() => _isLoading = true);
+    try {
+      final courses = await _databaseService.getCourses();
+      setState(() {
+        _registeredCourses = courses;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      print("Error loading registered courses: $e");
+    }
+  }
+
+  bool _isCourseRegistered(String courseTitle) {
+    return _registeredCourses.any((course) => course.title == courseTitle);
+  }
+
+  // Helper to find matching RegisteredCourse from sample data
+  RegisteredCourse? _findRegisteredCourseByTitle(String title) {
+    try {
+      return registeredCoursesWithProgress.firstWhere(
+        (course) => course.title == title,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final List<String> courses =
-        registeredCourses.map((course) => course.title).toList();
     const double cardWidth = 160;
     const double cardHeight = 160;
     const Color cardColor = Color(0xFFCDEBFD);
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: GridView.builder(
-        itemCount: registeredCoursesWithProgress.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // exactly 2 per row
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 1, // square cards
-        ),
-        itemBuilder: (context, index) {
-          final course = registeredCoursesWithProgress[index].title;
-          return Center(
-            child: SizedBox(
-              width: cardWidth,
-              height: cardHeight,
-              child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (_) => CourseInfoScreen(
-                            course: registeredCoursesWithProgress[index],
-                          ),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: cardColor,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+    return _isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: GridView.builder(
+            itemCount: registeredCoursesWithProgress.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+              childAspectRatio: 1,
+            ),
+            itemBuilder: (context, index) {
+              final sampleCourse = registeredCoursesWithProgress[index];
+              final isRegistered = _isCourseRegistered(sampleCourse.title);
 
-                    children: [
-                      SizedBox(
-                        height: 100,
-                        child: Center(
-                          child: Text(
-                            course,
-                            style: GoogleFonts.poppins(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF0F0D28),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+              return Center(
+                child: SizedBox(
+                  width: cardWidth,
+                  height: cardHeight,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => CourseInfoScreen(course: sampleCourse),
                         ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      SizedBox(
-                        width: double.infinity,
-                        child:
-                            registeredCourses.contains(
-                                  registeredCoursesWithProgress[index],
-                                )
-                                ? continueCourse(
-                                  registeredCourses[index]
-                                      .numberOfFinishedLessons,
-                                  allCourseLessons.length,
-                                  context,
-                                )
-                                : viewCourse(),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Course Title
+                          SizedBox(
+                            height: 80,
+                            child: Center(
+                              child: Text(
+                                sampleCourse.title,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF0F0D28),
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ),
+
+                          // Bottom Section - View Course or Progress
+                          isRegistered
+                              ? continueCourse(
+                                0,
+                                allCourseLessons[index].length,
+                                context,
+                              )
+                              : viewCourse(),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
+              );
+            },
+          ),
+        );
   }
 
   Row viewCourse() {

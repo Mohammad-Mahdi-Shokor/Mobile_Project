@@ -24,8 +24,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   late List<int> scores;
   late List<bool> unlocked;
   late List<Lesson> lessons;
-  final RegisteredCourseDatabaseHelper _dbHelper =
-      RegisteredCourseDatabaseHelper.instance;
 
   @override
   void initState() {
@@ -71,7 +69,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       return widget.course.sections.map((section) {
         return Lesson(
           title: section,
-          Done: false,
+          done: false,
           questions: [
             Question(
               question: "What is $section?",

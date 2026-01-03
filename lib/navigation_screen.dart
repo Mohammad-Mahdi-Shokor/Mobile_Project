@@ -24,28 +24,53 @@ class _NavigationScreenState extends State<NavigationScreen> {
   bool coursesExpanded = false;
   final List<RegisteredCourse> courses = registeredCoursesWithProgress;
   late List<RegisteredCourse> registeredCourses = [];
-  final RegisteredCourseDatabaseHelper _dbHelper =
-      RegisteredCourseDatabaseHelper.instance;
   late Widget currentScreen;
+  List<Course> _registered = [];
+  final _databaseService = DatabaseService();
+  final _titleController = TextEditingController();
+  final _indexController = TextEditingController();
+
+  Future<void> _loadCourses() async {
+    setState(() => _isLoading = true);
+    final courses = await _databaseService.getCourses();
+    setState(() {
+      _registered = courses;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _addCourse() async {
+    if (_titleController.text.isEmpty) return;
+
+    final index =
+        _indexController.text.isNotEmpty
+            ? int.tryParse(_indexController.text) ?? _registered.length
+            : _registered.length;
+
+    final newCourse = Course(title: _titleController.text, courseIndex: index);
+
+    await _databaseService.insertCourse(newCourse);
+
+    _titleController.clear();
+    _indexController.clear();
+    _loadCourses();
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Course added successfully')));
+  }
 
   @override
   void initState() {
     super.initState();
-    currentScreen = LearningScreen(registeredCourses: registeredCourses);
-    _loadCourses();
+    currentScreen = LearningScreen();
 
     _loadUserData();
   }
 
-  Future<void> _loadCourses() async {
-    registeredCourses = await _dbHelper.getAllCourses();
-    print('Loaded ${courses.length} courses');
-    // Update your UI here
-  }
-
   void switchScreen() {
     if (_selectedIndex == 0) {
-      currentScreen = LearningScreen(registeredCourses: registeredCourses);
+      currentScreen = LearningScreen();
     } else {
       currentScreen = const ProfileScreen();
     }
