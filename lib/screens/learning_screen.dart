@@ -16,7 +16,7 @@ class _LearningScreenState extends State<LearningScreen> {
   List<Course> _registeredCourses = [];
   bool _isLoading = true;
   final DatabaseService _databaseService = DatabaseService();
-
+  final Map<String, int> _courseProgress = {};
   @override
   void initState() {
     super.initState();
@@ -27,6 +27,9 @@ class _LearningScreenState extends State<LearningScreen> {
     setState(() => _isLoading = true);
     try {
       final courses = await _databaseService.getCourses();
+      for (var course in courses) {
+        _courseProgress[course.title] = course.lessonsFinished;
+      }
       setState(() {
         _registeredCourses = courses;
         _isLoading = false;
@@ -39,6 +42,33 @@ class _LearningScreenState extends State<LearningScreen> {
 
   bool _isCourseRegistered(String courseTitle) {
     return _registeredCourses.any((course) => course.title == courseTitle);
+  }
+
+  int _getLessonsFinished(String courseTitle) {
+    return _courseProgress[courseTitle] ?? 0;
+  }
+
+  // Get total lessons for a course (from sample data)
+  int _getTotalLessons(String courseTitle) {
+    try {
+      final courseIndex = registeredCoursesWithProgress.indexWhere(
+        (course) => course.title == courseTitle,
+      );
+
+      if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
+        return allCourseLessons[courseIndex].length;
+      }
+    } catch (e) {
+      print("Error getting total lessons: $e");
+    }
+
+    // Fallback to sections count if lessons not found
+    final course = registeredCoursesWithProgress.firstWhere(
+      (course) => course.title == courseTitle,
+      orElse: () => registeredCoursesWithProgress.first,
+    );
+
+    return course.sections.length;
   }
 
   @override
@@ -109,11 +139,7 @@ class _LearningScreenState extends State<LearningScreen> {
 
                           // Bottom Section - View Course or Progress
                           isRegistered
-                              ? continueCourse(
-                                0,
-                                allCourseLessons[index].length,
-                                context,
-                              )
+                              ? continueCourse(sampleCourse.title, context)
                               : viewCourse(),
                         ],
                       ),
@@ -145,40 +171,42 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Positioned continueCourse(int done, int total, BuildContext context) {
-    return Positioned(
-      right: 8,
-      left: 8,
-      bottom: 8,
-      child: Row(
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: done / total),
-            duration: const Duration(milliseconds: 800),
-            builder: (context, value, _) {
-              return CircularPercentage(percentage: value);
-            },
-          ),
+  Widget continueCourse(String courseTitle, BuildContext context) {
+    // Get actual progress for this course
+    final lessonsFinished = _getLessonsFinished(courseTitle);
+    final totalLessons = _getTotalLessons(courseTitle);
 
-          Spacer(),
-          Text(
-            "$done ",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F0D28),
-            ),
+    return Row(
+      children: [
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: lessonsFinished / totalLessons),
+          duration: const Duration(milliseconds: 800),
+          builder: (context, value, _) {
+            return SizedBox(
+              width: 30,
+              height: 30,
+              child: CircularPercentage(percentage: value),
+            );
+          },
+        ),
+        const Spacer(),
+        Text(
+          "$lessonsFinished ",
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0F0D28),
           ),
-          Text(
-            "/ $total",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Color(0xFF0F0D28),
-            ),
+        ),
+        Text(
+          "/ $totalLessons",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Color(0xFF0F0D28),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
