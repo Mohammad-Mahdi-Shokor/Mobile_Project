@@ -1,13 +1,15 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/models/data.dart' hide User;
+import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/profile_screen.dart';
-import 'package:mobile_project/services/dataBase.dart' hide Course;
+import 'package:mobile_project/services/registered_course.dart';
 import 'package:mobile_project/widgets/screenAppBar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
 import 'screens/course_info_screen.dart';
 import 'screens/learning_screen.dart';
+import 'services/database_helper.dart';
+import 'services/user_preferences_services.dart';
 
 class NavigationScreen extends StatefulWidget {
   const NavigationScreen({super.key, required this.onToggleTheme});
@@ -18,26 +20,32 @@ class NavigationScreen extends StatefulWidget {
 
 class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
-  Widget currentScreen = const LearningScreen();
 
   bool coursesExpanded = false;
-  final List<Course> courses = sampleCourses;
-  final userRepo = UserRepository();
-  User? user;
+  final List<RegisteredCourse> courses = registeredCoursesWithProgress;
+  late List<RegisteredCourse> registeredCourses = [];
+  final RegisteredCourseDatabaseHelper _dbHelper =
+      RegisteredCourseDatabaseHelper.instance;
+  late Widget currentScreen;
+
   @override
   void initState() {
     super.initState();
-    _initializeUser();
+    currentScreen = LearningScreen(registeredCourses: registeredCourses);
+    _loadCourses();
+
+    _loadUserData();
   }
 
-  void _initializeUser() async {
-    user = await userRepo.getUser(1);
-    setState(() {});
+  Future<void> _loadCourses() async {
+    registeredCourses = await _dbHelper.getAllCourses();
+    print('Loaded ${courses.length} courses');
+    // Update your UI here
   }
 
   void switchScreen() {
     if (_selectedIndex == 0) {
-      currentScreen = const LearningScreen();
+      currentScreen = LearningScreen(registeredCourses: registeredCourses);
     } else {
       currentScreen = const ProfileScreen();
     }
@@ -189,14 +197,30 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
   }
 
+  final UserPreferencesService _userService = UserPreferencesService.instance;
+  User? _currentUser;
+  bool _isLoading = true;
+
+  Future<void> _loadUserData() async {
+    setState(() => _isLoading = true);
+    _currentUser = await _userService.getUser();
+    setState(() => _isLoading = false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Use SharedPreferences user if exists, otherwise use sampleUser as fallback
+    final displayUser = _currentUser ?? sampleUser;
     return Scaffold(
       appBar: ScreenAppBar(
         context,
         _selectedIndex,
         widget.onToggleTheme,
-        user!.firstName,
+        displayUser.FirstName,
       ),
 
       drawer: _selectedIndex == 0 ? _buildDrawer() : null,

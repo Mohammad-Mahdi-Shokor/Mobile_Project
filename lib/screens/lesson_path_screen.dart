@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/services/registered_course.dart';
+import '../services/database_helper.dart';
 import 'test_screen.dart';
 
 class LessonPathScreen extends StatefulWidget {
-  final Course course;
+  final RegisteredCourse course;
+  final RegisteredCourse?
+  originalCourse; // Add this to get lessons from original course
 
-  const LessonPathScreen({super.key, required this.course});
+  const LessonPathScreen({
+    super.key,
+    required this.course,
+    this.originalCourse,
+  });
 
   @override
   State<LessonPathScreen> createState() => _LessonPathScreenState();
@@ -15,19 +23,74 @@ class LessonPathScreen extends StatefulWidget {
 class _LessonPathScreenState extends State<LessonPathScreen> {
   late List<int> scores;
   late List<bool> unlocked;
+  late List<Lesson> lessons;
+  final RegisteredCourseDatabaseHelper _dbHelper =
+      RegisteredCourseDatabaseHelper.instance;
 
   @override
   void initState() {
     super.initState();
-    scores = List.generate(widget.course.lessons.length, (_) => 0);
+
+    // Get lessons from original course if available
+    if (widget.originalCourse != null) {
+      lessons =
+          allCourseLessons[registeredCoursesWithProgress.indexOf(
+            widget.originalCourse!,
+          )];
+    } else {
+      // Find the course from sampleCourses
+      lessons = _findCourseLessons(widget.course.title);
+    }
+
+    // Initialize scores and unlocked
+    scores = List.generate(lessons.length, (_) => 0);
+
+    // Unlock based on number of finished lessons
     unlocked = List.generate(
-      widget.course.lessons.length,
-      (index) => index == 0,
+      lessons.length,
+      (index) => index < widget.course.numberOfFinishedLessons,
     );
+
+    // Always unlock first lesson
+    if (unlocked.isNotEmpty) {
+      unlocked[0] = true;
+    }
+  }
+
+  // Helper method to find lessons from sampleCourses
+  List<Lesson> _findCourseLessons(String courseTitle) {
+    try {
+      final course = registeredCoursesWithProgress.firstWhere(
+        (course) => course.title == courseTitle,
+      );
+      return allCourseLessons[registeredCoursesWithProgress.indexOf(course)];
+    } catch (e) {
+      print('Error finding course lessons: $e');
+
+      // Create placeholder lessons from sections
+      return widget.course.sections.map((section) {
+        return Lesson(
+          title: section,
+          Done: false,
+          questions: [
+            Question(
+              question: "What is $section?",
+              answers: [
+                Answer(answer: "Answer 1"),
+                Answer(answer: "Answer 2"),
+                Answer(answer: "Answer 3"),
+              ],
+            ),
+          ],
+        );
+      }).toList();
+    }
   }
 
   void startTest(int index) async {
-    final lesson = widget.course.lessons[index];
+    if (index >= lessons.length) return;
+
+    final lesson = lessons[index];
     final score = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -40,9 +103,44 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     if (score != null && score is int) {
       setState(() {
         if (score > scores[index]) scores[index] = score;
-        if (index + 1 < unlocked.length && score >= 50)
+
+        // Unlock next lesson if score is good enough
+        if (index + 1 < unlocked.length && score >= 50) {
           unlocked[index + 1] = true;
+
+          // Update course progress in database
+          _updateCourseProgress(index + 1);
+        }
       });
+    } else {
+      debugPrint('Score is null or not an integer');
+    }
+  }
+
+  // Update course progress in database
+  Future<void> _updateCourseProgress(int completedLessons) async {
+    try {
+      // Create updated course
+      final updatedCourse = RegisteredCourse(
+        id: widget.course.id,
+        title: widget.course.title,
+        description: widget.course.description,
+        numberOfFinishedLessons: completedLessons,
+        totalLessons: lessons.length,
+        about: widget.course.about,
+        imageUrl: widget.course.imageUrl,
+        sections: widget.course.sections,
+      );
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Progress saved!'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    } catch (e) {
+      print('Error updating progress: $e');
     }
   }
 
@@ -54,23 +152,32 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       appBar: AppBar(
         title: Text(widget.course.title),
         backgroundColor: Colors.blue,
+        actions: [
+          // Show progress
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: Text(
+                '${widget.course.numberOfFinishedLessons}/${lessons.length}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: SizedBox(
-          height: widget.course.lessons.length * nodeSpacing,
+          height: lessons.length * nodeSpacing,
           child: Stack(
             children: [
               CustomPaint(
-                size: Size(
-                  double.infinity,
-                  widget.course.lessons.length * nodeSpacing,
-                ),
-                painter: LessonPathPainter(
-                  widget.course.lessons.length,
-                  unlocked: unlocked,
-                ),
+                size: Size(double.infinity, lessons.length * nodeSpacing),
+                painter: LessonPathPainter(lessons.length, unlocked: unlocked),
               ),
-              for (int i = 0; i < widget.course.lessons.length; i++)
+              for (int i = 0; i < lessons.length; i++)
                 Positioned(
                   top: i * nodeSpacing,
                   left:
@@ -85,10 +192,11 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
                     child: GestureDetector(
                       onTap: unlocked[i] ? () => startTest(i) : null,
                       child: CourseNode(
-                        title: widget.course.lessons[i].title,
+                        title: lessons[i].title,
                         index: i + 1,
                         locked: !unlocked[i],
                         percentage: scores[i],
+                        isCompleted: i < widget.course.numberOfFinishedLessons,
                       ),
                     ),
                   ),
@@ -101,11 +209,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   }
 }
 
+// Updated CourseNode with proper logic
 class CourseNode extends StatefulWidget {
   final String title;
   final int index;
   final bool locked;
   final int percentage;
+  final bool isCompleted;
 
   const CourseNode({
     super.key,
@@ -113,6 +223,7 @@ class CourseNode extends StatefulWidget {
     required this.index,
     required this.locked,
     this.percentage = 0,
+    this.isCompleted = false,
   });
 
   @override
@@ -125,6 +236,16 @@ class _CourseNodeState extends State<CourseNode> {
   @override
   Widget build(BuildContext context) {
     final nodeSize = 80.0;
+
+    // Determine node color
+    Color primaryColor;
+    if (widget.locked) {
+      primaryColor = Colors.grey;
+    } else if (widget.isCompleted) {
+      primaryColor = Colors.green;
+    } else {
+      primaryColor = Colors.blue;
+    }
 
     return Column(
       children: [
@@ -146,21 +267,11 @@ class _CourseNodeState extends State<CourseNode> {
                   width: nodeSize,
                   height: nodeSize,
                   decoration: BoxDecoration(
-                    gradient:
-                        widget.locked
-                            ? LinearGradient(
-                              colors: [
-                                Colors.grey.shade700,
-                                Colors.grey.shade900,
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                            : LinearGradient(
-                              colors: [Colors.blue, Colors.lightBlueAccent],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                    gradient: LinearGradient(
+                      colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -188,6 +299,21 @@ class _CourseNodeState extends State<CourseNode> {
                             ),
                   ),
                 ),
+                // Show checkmark if completed
+                if (widget.isCompleted && !widget.locked)
+                  Positioned(
+                    top: 4,
+                    left: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.green,
+                      ),
+                      child: Icon(Icons.check, size: 16, color: Colors.white),
+                    ),
+                  ),
+                // Show percentage if test taken
                 if (!widget.locked && widget.percentage > 0)
                   Positioned(
                     top: 4,
@@ -196,9 +322,10 @@ class _CourseNodeState extends State<CourseNode> {
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: widget.percentage < 50
-                            ? Colors.red.withOpacity(0.8)
-                            : widget.percentage < 80
+                        color:
+                            widget.percentage < 50
+                                ? Colors.red.withOpacity(0.8)
+                                : widget.percentage < 80
                                 ? Colors.yellow.withOpacity(0.8)
                                 : Colors.green.withOpacity(0.8),
                       ),
@@ -219,10 +346,25 @@ class _CourseNodeState extends State<CourseNode> {
         const SizedBox(height: 10),
         SizedBox(
           width: 120,
-          child: Text(
-            widget.title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.black87),
+          child: Column(
+            children: [
+              Text(
+                widget.title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (widget.isCompleted)
+                Text(
+                  'Completed',
+                  style: GoogleFonts.poppins(fontSize: 10, color: Colors.green),
+                ),
+            ],
           ),
         ),
       ],
@@ -230,6 +372,7 @@ class _CourseNodeState extends State<CourseNode> {
   }
 }
 
+// LessonPathPainter remains the same
 class LessonPathPainter extends CustomPainter {
   final int nodeCount;
   final List<bool> unlocked;

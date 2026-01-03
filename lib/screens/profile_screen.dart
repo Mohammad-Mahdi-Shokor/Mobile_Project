@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/models/data.dart' hide User;
-import 'package:mobile_project/services/dataBase.dart';
+import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/widgets/theme.dart';
+
+import '../services/user_preferences_services.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,26 +14,35 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   List<Achievement> achievements = sampleAchievements;
-  // yale fo2 sample achievements, menchelon later on :)
-  final userRepo = UserRepository();
-  User? user;
-  void _initializeUser() async {
-    user = await userRepo.getUser(1);
-    setState(() {});
-  }
+  final UserPreferencesService _userService = UserPreferencesService.instance;
+  User? _currentUser;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _initializeUser();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() => _isLoading = true);
+    _currentUser = await _userService.getUser();
+    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    // Use SharedPreferences user if exists, otherwise use sampleUser as fallback
+    final displayUser = _currentUser ?? sampleUser;
+
+    print(displayUser.profilePicture);
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     final theme = Theme.of(context);
-
     return Center(
       child: Column(
         spacing: 15,
@@ -51,11 +61,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: CircleAvatar(
               radius: 60,
 
-              backgroundImage: NetworkImage(sampleUser.profilePicture),
+              backgroundImage: NetworkImage(displayUser.profilePicture),
             ),
           ),
           Text(
-            user!.username,
+            displayUser.username,
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -63,14 +73,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             textAlign: TextAlign.center,
           ),
           Text(
-            user!.tag,
+            displayUser.tag,
             style: GoogleFonts.spaceGrotesk(
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            "${user!.age}, ${sampleUser.Gender}",
+            "${displayUser.age}, ${displayUser.Gender}",
             style: GoogleFonts.spaceGrotesk(
               fontSize: 13,
               fontWeight: FontWeight.bold,

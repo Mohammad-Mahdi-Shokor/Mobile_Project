@@ -1,65 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/services/dataBase.dart';
+import 'package:mobile_project/services/registered_course.dart';
 import 'package:mobile_project/widgets/circularIndicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
-import 'package:mobile_project/models/data.dart' hide User;
+import 'package:mobile_project/models/data.dart';
 
-class LearningScreen extends StatefulWidget {
-  const LearningScreen({super.key});
-
+class LearningScreen extends StatelessWidget {
+  const LearningScreen({super.key, required this.registeredCourses});
+  final List<RegisteredCourse> registeredCourses;
   @override
-  State<LearningScreen> createState() => _LearningScreenState();
-}
-
-class _LearningScreenState extends State<LearningScreen> {
-  final userRepo = UserRepository();
-
-  User? user;
-  final courseRepo = CourseRepository();
-  List<Map<String, dynamic>> registeredCourses = [];
-  void _loadRegisteredCourses() async {
-    if (user != null) {
-      final courseRepo = CourseRepository();
-      final lessonRepo = LessonRepository();
-
-      // Fetch registered courses for the user
-      List<Map<String, dynamic>> registeredCourses = await courseRepo
-          .getUserCourses(user!.id!);
-
-      // Fetch progress for each course
-      for (var course in registeredCourses) {
-        int finishedLessons = await lessonRepo.countFinishedLessons(
-          user!.id!,
-          course['id'],
-        );
-        int totalLessons =
-            course['total_lessons']; // Ensure this is fetched in `getUserCourses`
-
-        print(
-          'Course: ${course['title']}, Finished: $finishedLessons, Total: $totalLessons',
-        );
-      }
-
-      setState(() {}); // Update the UI if needed
-    }
-  }
-
-  void _initializeUser() async {
-    user = await userRepo.getUser(1);
-    setState(() {});
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeUser();
-    _loadRegisteredCourses();
-  }
-
   Widget build(BuildContext context) {
     final List<String> courses =
-        sampleCourses.map((course) => course.title).toList();
+        registeredCourses.map((course) => course.title).toList();
     const double cardWidth = 160;
     const double cardHeight = 160;
     const Color cardColor = Color(0xFFCDEBFD);
@@ -67,7 +19,7 @@ class _LearningScreenState extends State<LearningScreen> {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: GridView.builder(
-        itemCount: courses.length,
+        itemCount: registeredCoursesWithProgress.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2, // exactly 2 per row
           mainAxisSpacing: 16,
@@ -75,7 +27,7 @@ class _LearningScreenState extends State<LearningScreen> {
           childAspectRatio: 1, // square cards
         ),
         itemBuilder: (context, index) {
-          final course = courses[index];
+          final course = registeredCoursesWithProgress[index].title;
           return Center(
             child: SizedBox(
               width: cardWidth,
@@ -86,7 +38,9 @@ class _LearningScreenState extends State<LearningScreen> {
                     context,
                     MaterialPageRoute(
                       builder:
-                          (_) => CourseInfoScreen(course: sampleCourses[index]),
+                          (_) => CourseInfoScreen(
+                            course: registeredCoursesWithProgress[index],
+                          ),
                     ),
                   );
                 },
@@ -117,17 +71,13 @@ class _LearningScreenState extends State<LearningScreen> {
                       SizedBox(
                         width: double.infinity,
                         child:
-                            registeredCourses.any(
-                                  (course) => course['id'] == index,
+                            registeredCourses.contains(
+                                  registeredCoursesWithProgress[index],
                                 )
                                 ? continueCourse(
-                                  sampleUser
-                                      .registeredCourses[index]
-                                      .NumberOfFinished,
-                                  sampleUser
-                                      .registeredCourses[index]
-                                      .lessons
-                                      .length,
+                                  registeredCourses[index]
+                                      .numberOfFinishedLessons,
+                                  allCourseLessons.length,
                                   context,
                                 )
                                 : viewCourse(),
