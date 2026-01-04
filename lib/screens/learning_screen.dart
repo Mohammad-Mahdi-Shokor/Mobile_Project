@@ -97,6 +97,7 @@ class _LearningScreenState extends State<LearningScreen> {
             vertical: 8,
           ),
           child: GridView.builder(
+            physics: const BouncingScrollPhysics(),
             itemCount: registeredCoursesWithProgress.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,

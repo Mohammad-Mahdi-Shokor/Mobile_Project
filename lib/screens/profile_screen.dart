@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
-import 'package:mobile_project/widgets/theme.dart';
 
 import '../services/user_preferences_services.dart';
 
