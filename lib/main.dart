@@ -8,12 +8,20 @@ import 'package:mobile_project/widgets/theme.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'models/data.dart';
 import 'screens/register_screen.dart';
+import 'services/scores_repo.dart';
 import 'services/user_preferences_services.dart';
 
 void main() async {
   // Initialize sqflite for desktop platforms
   WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    await ScoresRepository.initializeScores(
+      registeredCoursesWithProgress.length,
+      10, // Or your maximum lessons per course
+    );
+  });
   final statsService = UserStatsService();
   await statsService.updateLoginStreak();
 

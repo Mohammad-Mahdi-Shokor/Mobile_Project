@@ -1,10 +1,12 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import '../services/database_helper.dart';
 import '../services/registered_course.dart';
+import '../services/scores_repo.dart';
 import 'test_screen.dart';
 
 class LessonPathScreen extends StatefulWidget {
@@ -22,7 +24,8 @@ class LessonPathScreen extends StatefulWidget {
 }
 
 class _LessonPathScreenState extends State<LessonPathScreen> {
-  late List<int> scores;
+  List<int> courseScores = [];
+  int courseIndex = 0;
   late List<bool> unlocked;
   late List<Lesson> lessons;
   final DatabaseService _dbService = DatabaseService();
@@ -30,12 +33,52 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   int _completedLessons = 0;
   bool _isLoading = true;
 
+  Future<void> _loadScores() async {
+    // Get the course index
+    final int currentCourseIndex = registeredCoursesWithProgress.indexOf(
+      widget.course,
+    );
+    courseIndex = currentCourseIndex; // Store in class variable
+
+    // Initialize if needed
+    await ScoresRepository.initializeScores(
+      registeredCoursesWithProgress.length,
+      lessons.length,
+    );
+
+    // Load scores for this course
+    final courseScoresList = await ScoresRepository.getCourseScores(
+      currentCourseIndex,
+    );
+
+    setState(() {
+      // If no scores exist, initialize with zeros
+      if (courseScoresList.isEmpty) {
+        courseScores = List.filled(lessons.length, 0);
+      } else {
+        // Ensure the list matches lesson count
+        if (courseScoresList.length < lessons.length) {
+          courseScores = [
+            ...courseScoresList,
+            ...List.filled(lessons.length - courseScoresList.length, 0),
+          ];
+        } else {
+          courseScores = courseScoresList;
+        }
+      }
+    });
+
+    // Debug: print scores
+    await ScoresRepository.debugPrintScores();
+  }
+
   @override
   void initState() {
     super.initState();
     _initializeScreen();
   }
 
+  // Modified _initializeScreen to load scores after lessons are found
   Future<void> _initializeScreen() async {
     setState(() => _isLoading = true);
 
@@ -48,7 +91,11 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
     await _findDatabaseCourse();
 
-    scores = List.generate(lessons.length, (_) => 0);
+    // DON'T initialize courseScores here - let _loadScores handle it
+    // courseScores = List.generate(lessons.length, (_) => 0); // REMOVE THIS LINE
+
+    // Now load scores
+    await _loadScores();
 
     // FIX: Only unlock lessons that are truly completed
     // If _completedLessons = 1, that means lesson 0 is completed, lesson 1 should be unlocked but not completed
@@ -60,6 +107,31 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     });
 
     setState(() => _isLoading = false);
+  }
+
+  // Add a method to reload scores when needed
+  Future<void> _reloadScores() async {
+    await _loadScores();
+    setState(() {});
+  }
+
+  Future<void> _addScore(int score, int lessonIndex) async {
+    final courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
+
+    // Add the score using ScoresRepository
+    await ScoresRepository.addScore(courseIndex, lessonIndex, score);
+
+    // Update local state
+    setState(() {
+      if (lessonIndex < courseScores.length) {
+        courseScores[lessonIndex] = score;
+      }
+    });
+
+    // Show confirmation
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Score added successfully!')));
   }
 
   // Helper method to find lessons
@@ -101,11 +173,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     try {
       final allCourses = await _dbService.getCourses();
       print("Found ${allCourses.length} courses in database"); // Debug
-      
+
       final databaseCourse = allCourses.firstWhere(
         (course) => course.title == widget.course.title,
         orElse: () {
-          print("Course not found in database: ${widget.course.title}"); // Debug
+          print(
+            "Course not found in database: ${widget.course.title}",
+          ); // Debug
           return Course(
             title: widget.course.title,
             courseIndex: 0,
@@ -116,62 +190,82 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
       _databaseCourseId = databaseCourse.id;
       _completedLessons = databaseCourse.lessonsFinished;
-      print("Loaded from DB: courseId=$_databaseCourseId, completedLessons=$_completedLessons"); // Debug
+      print(
+        "Loaded from DB: courseId=$_databaseCourseId, completedLessons=$_completedLessons",
+      ); // Debug
     } catch (e) {
       print('Error finding database course: $e');
       _completedLessons = 0;
     }
   }
-  Future<void> startTest(int index) async {
-    if (index >= lessons.length || !unlocked[index]) return;
 
-    final lesson = lessons[index];
+  Future<void> startTest(int lessonIndex) async {
+    if (lessonIndex >= lessons.length || !unlocked[lessonIndex]) return;
+
+    final lesson = lessons[lessonIndex];
     final score = await Navigator.push<int>(
       context,
       MaterialPageRoute(
-        builder: (_) => TestScreen(
-          section: lesson.title,
-          questions: lesson.questions,
-          courseId: _databaseCourseId ?? 0,
-          totalLessons: lessons.length,
-          onTestCompleted: () {},
-        ),
+        builder:
+            (_) => TestScreen(
+              section: lesson.title,
+              questions: lesson.questions,
+              courseId: _databaseCourseId ?? 0,
+              totalLessons: lessons.length,
+              onTestCompleted: () {},
+            ),
       ),
     );
 
     if (score != null && mounted) {
-      // Update score for this lesson
-      final updatedScores = List<int>.from(scores);
-      if (score > updatedScores[index]) {
-        updatedScores[index] = score;
-      }
+      final courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
 
-      // CRITICAL FIX: Only unlock/save if score is passing
-      final isPassingScore = score >= 70;
-      final shouldUnlockNext = isPassingScore && index + 1 < lessons.length;
+      // Update the score for this specific lesson
+      await ScoresRepository.changeScore(courseIndex, lessonIndex, score);
 
+      // Update local state
       setState(() {
-        scores = updatedScores;
-        
-        if (shouldUnlockNext) {
-          // Only unlock next lesson if passing score
-          final updatedUnlocked = List<bool>.from(unlocked);
-          updatedUnlocked[index + 1] = true;
-          unlocked = updatedUnlocked;
+        // Update the score in our local list
+        if (lessonIndex < courseScores.length) {
+          courseScores[lessonIndex] = score;
+        } else {
+          // If the list is too short, extend it
+          courseScores.add(score);
         }
       });
 
-      // CRITICAL FIX: Only save progress to database if passing
+      // Check if we should unlock next lesson
+      final isPassingScore = score >= 70;
+      final shouldUnlockNext =
+          isPassingScore && lessonIndex + 1 < lessons.length;
+
+      if (shouldUnlockNext) {
+        setState(() {
+          final updatedUnlocked = List<bool>.from(unlocked);
+          updatedUnlocked[lessonIndex + 1] = true;
+          unlocked = updatedUnlocked;
+        });
+      }
+
+      // Update progress in database if passing
       if (isPassingScore) {
-        // Calculate how many lessons are completed (all up to current index)
-        final newCompletedCount = index + 1;
-        
-        // Only update if this increases progress
+        final newCompletedCount = lessonIndex + 1;
         if (newCompletedCount > _completedLessons) {
           _completedLessons = newCompletedCount;
           await _updateCourseProgress(_completedLessons);
         }
       }
+
+      // Show confirmation
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Score updated: $score%'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // Debug: print updated scores
+      await ScoresRepository.debugPrintScores();
     }
   }
 
@@ -224,6 +318,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
+      // REMOVE: || scores == null
       return Scaffold(
         appBar: AppBar(title: Text(widget.course.title)),
         body: const Center(child: CircularProgressIndicator()),
@@ -247,7 +342,10 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
             padding: const EdgeInsets.only(right: 16.0),
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -263,6 +361,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
               ),
             ),
           ),
+          // Optional: Add refresh button for debugging
+          if (kDebugMode)
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: _reloadScores,
+              tooltip: 'Refresh scores',
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -270,13 +375,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         child: SizedBox(
           height: totalLessons * nodeSpacing + 30,
           child: Padding(
-            padding: const EdgeInsets.only(top:20.0),
+            padding: const EdgeInsets.only(top: 20.0),
             child: Stack(
               children: [
                 CustomPaint(
                   size: Size(double.infinity, totalLessons * nodeSpacing),
                   painter: LessonPathPainter(
-                    totalLessons, 
+                    totalLessons,
                     unlocked: unlocked,
                     theme: theme,
                   ),
@@ -284,20 +389,22 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
                 for (int i = 0; i < totalLessons; i++)
                   Positioned(
                     top: i * nodeSpacing,
-                    left: i % 2 == 0
-                        ? MediaQuery.of(context).size.width * 0.18
-                        : MediaQuery.of(context).size.width * 0.62,
+                    left:
+                        i % 2 == 0
+                            ? MediaQuery.of(context).size.width * 0.18
+                            : MediaQuery.of(context).size.width * 0.62,
                     child: MouseRegion(
-                      cursor: unlocked[i]
-                          ? SystemMouseCursors.click
-                          : SystemMouseCursors.basic,
+                      cursor:
+                          unlocked[i]
+                              ? SystemMouseCursors.click
+                              : SystemMouseCursors.basic,
                       child: GestureDetector(
                         onTap: unlocked[i] ? () => startTest(i) : null,
                         child: CourseNode(
                           title: lessons[i].title,
                           index: i + 1,
                           locked: !unlocked[i],
-                          percentage: scores[i],
+                          percentage: courseScores[i],
                           isCompleted: i < _completedLessons,
                           theme: theme,
                         ),
@@ -368,8 +475,9 @@ class _CourseNodeState extends State<CourseNode> {
       children: [
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          transform: Matrix4.identity()
-            ..scale(hovering && !widget.locked ? 1.15 : 1.0),
+          transform:
+              Matrix4.identity()
+                ..scale(hovering && !widget.locked ? 1.15 : 1.0),
           child: MouseRegion(
             onEnter: (_) => setState(() => hovering = true),
             onExit: (_) => setState(() => hovering = false),
@@ -394,10 +502,7 @@ class _CourseNodeState extends State<CourseNode> {
                   decoration: BoxDecoration(
                     color: nodeColor,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: borderColor,
-                      width: 3,
-                    ),
+                    border: Border.all(color: borderColor, width: 3),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(
@@ -409,20 +514,17 @@ class _CourseNodeState extends State<CourseNode> {
                     ],
                   ),
                   child: Center(
-                    child: widget.locked
-                        ? Icon(
-                            Icons.lock,
-                            color: textColor,
-                            size: 24,
-                          )
-                        : Text(
-                            widget.index.toString(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                    child:
+                        widget.locked
+                            ? Icon(Icons.lock, color: textColor, size: 24)
+                            : Text(
+                              widget.index.toString(),
+                              style: GoogleFonts.poppins(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
                   ),
                 ),
 
@@ -456,9 +558,10 @@ class _CourseNodeState extends State<CourseNode> {
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: widget.percentage < 50
-                            ? Colors.red
-                            : widget.percentage < 80
+                        color:
+                            widget.percentage < 50
+                                ? Colors.red
+                                : widget.percentage < 80
                                 ? Colors.orange
                                 : Colors.green,
                         borderRadius: BorderRadius.circular(10),
@@ -493,9 +596,10 @@ class _CourseNodeState extends State<CourseNode> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 11,
-                  color: widget.locked
-                      ? (isDark ? Colors.grey[500] : Colors.grey[600])
-                      : (isDark ? Colors.white : Colors.black87),
+                  color:
+                      widget.locked
+                          ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                          : (isDark ? Colors.white : Colors.black87),
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
@@ -539,20 +643,24 @@ class LessonPathPainter extends CustomPainter {
 
     for (int i = 0; i < nodeCount - 1; i++) {
       final isSegmentUnlocked = unlocked[i] && unlocked[i + 1];
-      
-      final paint = Paint()
-        ..color = isSegmentUnlocked
-            ? const Color(0xFF3D5CFF).withOpacity(0.7)
-            : (isDark ? Colors.grey[700]! : Colors.grey[300]!)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = isSegmentUnlocked ? 3.5 : 2.5
-        ..strokeCap = StrokeCap.round;
+
+      final paint =
+          Paint()
+            ..color =
+                isSegmentUnlocked
+                    ? const Color(0xFF3D5CFF).withOpacity(0.7)
+                    : (isDark ? Colors.grey[700]! : Colors.grey[300]!)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = isSegmentUnlocked ? 3.5 : 2.5
+            ..strokeCap = StrokeCap.round;
 
       // Calculate positions
-      final startX = i % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
+      final startX =
+          i % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
       final startY = i * spacing + 35;
 
-      final endX = (i + 1) % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
+      final endX =
+          (i + 1) % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
       final endY = (i + 1) * spacing + 35;
 
       // Control points for smoother curve
@@ -564,19 +672,16 @@ class LessonPathPainter extends CustomPainter {
       // Draw curved path
       final path = Path();
       path.moveTo(startX, startY);
-      path.cubicTo(
-        controlX1, controlY1,
-        controlX2, controlY2,
-        endX, endY,
-      );
+      path.cubicTo(controlX1, controlY1, controlX2, controlY2, endX, endY);
 
       canvas.drawPath(path, paint);
 
       // Add arrowhead for direction
       if (isSegmentUnlocked) {
-        final arrowPaint = Paint()
-          ..color = const Color(0xFF3D5CFF)
-          ..style = PaintingStyle.fill;
+        final arrowPaint =
+            Paint()
+              ..color = const Color(0xFF3D5CFF)
+              ..style = PaintingStyle.fill;
 
         // Calculate arrow position at 70% of the path
         final t = 0.7;
@@ -584,8 +689,20 @@ class LessonPathPainter extends CustomPainter {
         final arrowY = _cubicBezier(startY, controlY1, controlY2, endY, t);
 
         // Calculate tangent for arrow direction
-        final dx = _cubicBezierDerivative(startX, controlX1, controlX2, endX, t);
-        final dy = _cubicBezierDerivative(startY, controlY1, controlY2, endY, t);
+        final dx = _cubicBezierDerivative(
+          startX,
+          controlX1,
+          controlX2,
+          endX,
+          t,
+        );
+        final dy = _cubicBezierDerivative(
+          startY,
+          controlY1,
+          controlY2,
+          endY,
+          t,
+        );
         final angle = atan2(dy, dx);
 
         // Draw arrow
@@ -608,16 +725,22 @@ class LessonPathPainter extends CustomPainter {
   // Cubic Bézier calculation
   double _cubicBezier(double a, double b, double c, double d, double t) {
     return pow(1 - t, 3) * a +
-           3 * pow(1 - t, 2) * t * b +
-           3 * (1 - t) * pow(t, 2) * c +
-           pow(t, 3) * d;
+        3 * pow(1 - t, 2) * t * b +
+        3 * (1 - t) * pow(t, 2) * c +
+        pow(t, 3) * d;
   }
 
   // Cubic Bézier derivative
-  double _cubicBezierDerivative(double a, double b, double c, double d, double t) {
+  double _cubicBezierDerivative(
+    double a,
+    double b,
+    double c,
+    double d,
+    double t,
+  ) {
     return 3 * pow(1 - t, 2) * (b - a) +
-           6 * (1 - t) * t * (c - b) +
-           3 * pow(t, 2) * (d - c);
+        6 * (1 - t) * t * (c - b) +
+        3 * pow(t, 2) * (d - c);
   }
 
   @override
