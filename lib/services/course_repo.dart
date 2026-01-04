@@ -1,6 +1,5 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import '../models/course.dart';
 import 'database_helper.dart';
 
 class CourseRepository {

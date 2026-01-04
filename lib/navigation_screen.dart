@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/profile_screen.dart';
 import 'package:mobile_project/services/registered_course.dart';
-import 'package:mobile_project/widgets/screenAppBar.dart';
+import 'package:mobile_project/widgets/screen_app_bar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
 import 'screens/course_info_screen.dart';
 import 'screens/learning_screen.dart';

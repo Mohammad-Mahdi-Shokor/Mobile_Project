@@ -2,7 +2,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/data.dart';
-import '../models/user.dart';
 
 class UserPreferencesService {
   // Singleton pattern
@@ -152,6 +151,10 @@ class UserPreferencesService {
   // Clear all user data
   Future<void> clearAllData() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove(_userKey); // Remove user data
+    await prefs.remove(_themeKey); // Remove theme preference
+    await prefs.setBool(_isFirstLaunchKey, true); // Reset first launch
+    // Note: This doesn't delete SQLite database - courses/progress will remain
+    // If you want to delete that too, you need to clear the database separately
   }
 }

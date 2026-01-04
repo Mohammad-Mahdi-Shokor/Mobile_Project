@@ -140,7 +140,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       ),
     );
 
-    if (score != null && score is int) {
+    if (score != null) {
       // Update the score for this lesson
       final updatedScores = List<int>.from(scores);
       if (score > updatedScores[index]) {

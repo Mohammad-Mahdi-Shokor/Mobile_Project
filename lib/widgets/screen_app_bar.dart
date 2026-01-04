@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mobile_project/models/data.dart';
-import 'package:mobile_project/screens/registerScreen.dart';
+import 'package:mobile_project/screens/user_profile_screen.dart';
 
 AppBar ScreenAppBar(
   BuildContext context,
@@ -31,7 +31,10 @@ AppBar ScreenAppBar(
               context,
               MaterialPageRoute(
                 builder: (ctx) {
-                  return UserProfileScreen(isEditing: true);
+                  return UserProfileScreen(
+                    isEditing: true,
+                    onToggleTheme: onToggleTheme,
+                  );
                 },
               ),
             );
@@ -50,7 +53,7 @@ AppBar ScreenAppBar(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          'Hi, ${firstName}',
+          'Hi, $firstName',
           style: theme.textTheme.titleLarge?.copyWith(color: Colors.white),
         ),
         Text(

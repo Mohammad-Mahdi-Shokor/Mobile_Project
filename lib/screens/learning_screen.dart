@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/widgets/circularIndicator.dart';
+import 'package:mobile_project/widgets/circular_indicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
 import 'package:mobile_project/models/data.dart';
 import '../services/database_helper.dart';
