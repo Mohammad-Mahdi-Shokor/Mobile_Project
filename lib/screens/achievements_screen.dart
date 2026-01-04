@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/services/user_stats_service.dart';
+import 'package:share_plus/share_plus.dart';
 import '../services/user_preferences_services.dart';
 import '../services/database_helper.dart';
 
@@ -16,7 +17,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   final UserPreferencesService _userService = UserPreferencesService.instance;
   final DatabaseService _dbService = DatabaseService();
   List<Achievement> _achievements = [];
-  User? _currentUser;
+  User? currentUser;
   bool _isLoading = true;
 
   @override
@@ -29,7 +30,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     setState(() => _isLoading = true);
 
     // Load user and progress data
-    _currentUser = await _userService.getUser();
+    currentUser = await _userService.getUser();
     final courses = await _dbService.getCourses();
 
     // Calculate achievements progress based on actual data
@@ -39,140 +40,147 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   }
 
   Future<List<Achievement>> _calculateAchievementsProgress(
-  List<Course> courses,
-) async {
-  final achievements = List<Achievement>.from(sampleAchievements);
-  final statsService = UserStatsService();
+    List<Course> courses,
+  ) async {
+    final achievements = List<Achievement>.from(sampleAchievements);
+    final statsService = UserStatsService();
 
-  // Get stats
-  final totalLessonsCompleted = courses.fold(0, (sum, course) => sum + course.lessonsFinished);
-  final registeredCoursesCount = courses.length;
-  final hasPerfectScore = await statsService.hasPerfectScore();
-  final currentStreak = await statsService.getCurrentStreak();
-  final todayLessonCount = await statsService.getTodayLessonCount();
-  final shareCount = await statsService.getShareCount();
-  final correctAnswersCount = await statsService.getCorrectAnswersCount();
-  final hasFastCompletion = await statsService.hasFastCompletion();
-  
-  // Check if any course is fully completed
-  bool hasMasteredCourse = courses.any((course) {
-    try {
-      final courseIndex = registeredCoursesWithProgress.indexWhere(
-        (c) => c.title == course.title,
-      );
-      if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
-        final totalLessonsInCourse = allCourseLessons[courseIndex].length;
-        return course.lessonsFinished >= totalLessonsInCourse;
-      }
-    } catch (e) {
-      print("Error checking course completion: $e");
-    }
-    return false;
-  });
-
-  // Update achievements based on actual progress
-  for (int i = 0; i < achievements.length; i++) {
-    final achievement = achievements[i];
-    double newProgress = 0;
-
-    switch (achievement.name) {
-      case "First Step":
-        newProgress = totalLessonsCompleted >= 1 ? 1 : 0;
-        break;
-      
-      case "Completionist":
-        newProgress = registeredCoursesCount >= 4 
-            ? 4 
-            : registeredCoursesCount.toDouble();
-        break;
-
-      case "Perfect Score":
-        newProgress = hasPerfectScore ? 1 : 0;
-        break;
-
-      case "3-Day Streak":
-        newProgress = currentStreak >= 3 ? 3 : currentStreak.toDouble();
-        break;
-
-      case "Speed Learner":
-        // Track if completed 5 lessons in one day
-        newProgress = todayLessonCount >= 5 ? 5 : todayLessonCount.toDouble();
-        break;
-
-      case "Consistent":
-        newProgress = totalLessonsCompleted >= 10 
-            ? 10 
-            : totalLessonsCompleted.toDouble();
-        break;
-
-      case "Course Explorer":
-        newProgress = registeredCoursesCount >= 3 
-            ? 3 
-            : registeredCoursesCount.toDouble();
-        break;
-
-      case "Master Student":
-        newProgress = hasMasteredCourse ? 1 : 0;
-        break;
-
-      case "Social Learner":
-        newProgress = shareCount >= 5 ? 5 : shareCount.toDouble();
-        break;
-
-      case "Quick Thinker":
-        newProgress = correctAnswersCount >= 20 ? 20 : correctAnswersCount.toDouble();
-        break;
-
-      case "Fast Starter":
-        newProgress = hasFastCompletion ? 1 : 0;
-        break;
-
-      case "Perfect Week":
-        newProgress = currentStreak >= 7 ? 7 : currentStreak.toDouble();
-        break;
-
-      default:
-        newProgress = achievement.progress;
-    }
-
-    achievements[i] = achievement.copyWith(
-      progress: newProgress,
-      isUnlocked: newProgress >= achievement.target,
+    // Get stats
+    final totalLessonsCompleted = courses.fold(
+      0,
+      (sum, course) => sum + course.lessonsFinished,
     );
-  }
+    final registeredCoursesCount = courses.length;
+    final hasPerfectScore = await statsService.hasPerfectScore();
+    final currentStreak = await statsService.getCurrentStreak();
+    final todayLessonCount = await statsService.getTodayLessonCount();
+    final shareCount = await statsService.getShareCount();
+    final correctAnswersCount = await statsService.getCorrectAnswersCount();
+    final hasFastCompletion = await statsService.hasFastCompletion();
 
-  return achievements;
-}
+    // Check if any course is fully completed
+    bool hasMasteredCourse = courses.any((course) {
+      try {
+        final courseIndex = registeredCoursesWithProgress.indexWhere(
+          (c) => c.title == course.title,
+        );
+        if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
+          final totalLessonsInCourse = allCourseLessons[courseIndex].length;
+          return course.lessonsFinished >= totalLessonsInCourse;
+        }
+      } catch (e) {
+        print("Error checking course completion: $e");
+      }
+      return false;
+    });
+
+    // Update achievements based on actual progress
+    for (int i = 0; i < achievements.length; i++) {
+      final achievement = achievements[i];
+      double newProgress = 0;
+
+      switch (achievement.name) {
+        case "First Step":
+          newProgress = totalLessonsCompleted >= 1 ? 1 : 0;
+          break;
+
+        case "Completionist":
+          newProgress =
+              registeredCoursesCount >= 4
+                  ? 4
+                  : registeredCoursesCount.toDouble();
+          break;
+
+        case "Perfect Score":
+          newProgress = hasPerfectScore ? 1 : 0;
+          break;
+
+        case "3-Day Streak":
+          newProgress = currentStreak >= 3 ? 3 : currentStreak.toDouble();
+          break;
+
+        case "Speed Learner":
+          // Track if completed 5 lessons in one day
+          newProgress = todayLessonCount >= 5 ? 5 : todayLessonCount.toDouble();
+          break;
+
+        case "Consistent":
+          newProgress =
+              totalLessonsCompleted >= 10
+                  ? 10
+                  : totalLessonsCompleted.toDouble();
+          break;
+
+        case "Course Explorer":
+          newProgress =
+              registeredCoursesCount >= 3
+                  ? 3
+                  : registeredCoursesCount.toDouble();
+          break;
+
+        case "Master Student":
+          newProgress = hasMasteredCourse ? 1 : 0;
+          break;
+
+        case "Social Learner":
+          newProgress = shareCount >= 5 ? 5 : shareCount.toDouble();
+          break;
+
+        case "Quick Thinker":
+          newProgress =
+              correctAnswersCount >= 20 ? 20 : correctAnswersCount.toDouble();
+          break;
+
+        case "Fast Starter":
+          newProgress = hasFastCompletion ? 1 : 0;
+          break;
+
+        case "Perfect Week":
+          newProgress = currentStreak >= 7 ? 7 : currentStreak.toDouble();
+          break;
+
+        default:
+          newProgress = achievement.progress;
+      }
+
+      achievements[i] = achievement.copyWith(
+        progress: newProgress,
+        isUnlocked: newProgress >= achievement.target,
+      );
+    }
+
+    return achievements;
+  }
 
   Widget _buildAchievementCard(Achievement achievement) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isCompleted = achievement.isCompleted;
-    final isUnlocked = achievement.isUnlocked;
 
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isCompleted
-              ? achievement.color.withOpacity(0.5)
-              : Colors.transparent,
+          color:
+              isCompleted
+                  ? achievement.color.withOpacity(0.5)
+                  : Colors.transparent,
           width: 2,
         ),
       ),
       child: Container(
         decoration: BoxDecoration(
-          gradient: isCompleted
-              ? LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  achievement.color.withOpacity(0.1),
-                  achievement.color.withOpacity(0.05),
-                ],
-              )
-              : null,
+          gradient:
+              isCompleted
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      achievement.color.withOpacity(0.1),
+                      achievement.color.withOpacity(0.05),
+                    ],
+                  )
+                  : null,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
@@ -187,16 +195,18 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: isCompleted
-                          ? achievement.color.withOpacity(0.2)
-                          : achievement.color.withOpacity(0.1),
+                      color:
+                          isCompleted
+                              ? achievement.color.withOpacity(0.2)
+                              : achievement.color.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       achievement.icon,
-                      color: isCompleted
-                          ? achievement.color
-                          : achievement.color.withOpacity(0.7),
+                      color:
+                          isCompleted
+                              ? achievement.color
+                              : achievement.color.withOpacity(0.7),
                       size: 28,
                     ),
                   ),
@@ -317,43 +327,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   ),
                 ],
               ),
-
-              const SizedBox(height: 8),
-
-              // Reward indicator - only show if completed
-              if (isCompleted)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: achievement.color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: achievement.color.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.emoji_events,
-                        size: 16,
-                        color: achievement.color,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Unlocked!',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: achievement.color,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
             ],
           ),
         ),
@@ -459,63 +432,89 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         backgroundColor: const Color(0xFF3D5CFF),
         foregroundColor: Colors.white,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-            onRefresh: _loadData,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                // Stats card
-                _buildStatsCard(),
-
-                const SizedBox(height: 24),
-
-                // Achievements list header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
                   children: [
-                    Text(
-                      'Your Achievements',
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3D5CFF).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_achievements.where((a) => a.isCompleted).length}/${_achievements.length}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: const Color(0xFF3D5CFF),
-                          fontWeight: FontWeight.w600,
+                    // Stats card
+                    _buildStatsCard(),
+
+                    const SizedBox(height: 24),
+
+                    // Achievements list header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Your Achievements',
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
                         ),
-                      ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF3D5CFF).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${_achievements.where((a) => a.isCompleted).length}/${_achievements.length}',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: const Color(0xFF3D5CFF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+
+                    const SizedBox(height: 16),
+
+                    // Achievements list (using ListView instead of GridView)
+                    ..._achievements.map((achievement) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildAchievementCard(achievement),
+                      );
+                    }).toList(),
                   ],
                 ),
+              ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final statsService = UserStatsService();
+          final shareCount = await statsService.getShareCount();
 
-                const SizedBox(height: 16),
+          final shareText = '''
+🏆 My Achievements Progress 🏆
 
-                // Achievements list (using ListView instead of GridView)
-                ..._achievements.map((achievement) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: _buildAchievementCard(achievement),
-                  );
-                }).toList(),
-              ],
-            ),
-          ),
+✅ Completed: ${_achievements.where((a) => a.isCompleted).length}/${_achievements.length} achievements
+
+🎯 Top Achievements:
+${_achievements.where((a) => a.isCompleted).take(3).map((a) => '• ${a.name}').join('\n')}
+
+Keep pushing for greatness! 💪
+
+#Achievements #LearningGoals #Progress
+''';
+
+          await Share.share(shareText);
+          await statsService.incrementShareCount();
+        },
+        icon: const Icon(Icons.share),
+        label: const Text('Share'),
+        backgroundColor: const Color(0xFF3D5CFF),
+      ),
     );
   }
 }

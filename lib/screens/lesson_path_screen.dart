@@ -8,6 +8,7 @@ import '../services/database_helper.dart';
 import '../services/registered_course.dart';
 import '../services/scores_repo.dart';
 import 'test_screen.dart';
+import '../services/user_stats_service.dart';
 
 class LessonPathScreen extends StatefulWidget {
   final RegisteredCourse course;
@@ -32,6 +33,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   int? _databaseCourseId;
   int _completedLessons = 0;
   bool _isLoading = true;
+  final UserStatsService _statsService = UserStatsService();
 
   Future<void> _loadScores() async {
     // Get the course index
@@ -115,24 +117,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     setState(() {});
   }
 
-  Future<void> _addScore(int score, int lessonIndex) async {
-    final courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
-
-    // Add the score using ScoresRepository
-    await ScoresRepository.addScore(courseIndex, lessonIndex, score);
-
-    // Update local state
-    setState(() {
-      if (lessonIndex < courseScores.length) {
-        courseScores[lessonIndex] = score;
-      }
-    });
-
-    // Show confirmation
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text('Score added successfully!')));
-  }
 
   // Helper method to find lessons
   List<Lesson> _findCourseLessons(String courseTitle) {
@@ -199,10 +183,21 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     }
   }
 
-  Future<void> startTest(int lessonIndex) async {
-    if (lessonIndex >= lessons.length || !unlocked[lessonIndex]) return;
+  Future<void> startTest(int index) async {
+    if (index >= lessons.length || !unlocked[index]) return;
 
-    final lesson = lessons[lessonIndex];
+    final lesson = lessons[index];
+
+    // Track if this is the first lesson of the first registered course
+    final isFirstLessonOfFirstCourse = index == 0 && _completedLessons == 0;
+
+    // Start tracking time for fast completion (only track first lesson timing)
+    DateTime? startTime;
+    if (isFirstLessonOfFirstCourse) {
+      startTime = DateTime.now();
+      print("Starting timer for fast completion tracking");
+    }
+
     final score = await Navigator.push<int>(
       context,
       MaterialPageRoute(
@@ -218,54 +213,99 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     );
 
     if (score != null && mounted) {
-      final courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
+      // Update score for this lesson - FIX: Use courseScores not scores
+      final updatedScores = List<int>.from(
+        courseScores,
+      ); // CHANGED: courseScores not scores
+      if (score > updatedScores[index]) {
+        updatedScores[index] = score;
+      }
 
-      // Update the score for this specific lesson
-      await ScoresRepository.changeScore(courseIndex, lessonIndex, score);
+      // CRITICAL FIX: Only unlock/save if score is passing
+      final isPassingScore = score >= 70;
+      final shouldUnlockNext = isPassingScore && index + 1 < lessons.length;
 
-      // Update local state
       setState(() {
-        // Update the score in our local list
-        if (lessonIndex < courseScores.length) {
-          courseScores[lessonIndex] = score;
-        } else {
-          // If the list is too short, extend it
-          courseScores.add(score);
+        courseScores = updatedScores; // CHANGED: courseScores not scores
+
+        if (shouldUnlockNext) {
+          // Only unlock next lesson if passing score
+          final updatedUnlocked = List<bool>.from(unlocked);
+          updatedUnlocked[index + 1] = true;
+          unlocked = updatedUnlocked;
         }
       });
 
-      // Check if we should unlock next lesson
-      final isPassingScore = score >= 70;
-      final shouldUnlockNext =
-          isPassingScore && lessonIndex + 1 < lessons.length;
+      // Also save the score to ScoresRepository
+      final currentCourseIndex = registeredCoursesWithProgress.indexOf(
+        widget.course,
+      );
+      await ScoresRepository.addScore(currentCourseIndex, index, score);
 
-      if (shouldUnlockNext) {
-        setState(() {
-          final updatedUnlocked = List<bool>.from(unlocked);
-          updatedUnlocked[lessonIndex + 1] = true;
-          unlocked = updatedUnlocked;
-        });
-      }
-
-      // Update progress in database if passing
+      // CRITICAL FIX: Only save progress to database if passing
       if (isPassingScore) {
-        final newCompletedCount = lessonIndex + 1;
+        // Calculate how many lessons are completed (all up to current index)
+        final newCompletedCount = index + 1;
+
+        // Only update if this increases progress
         if (newCompletedCount > _completedLessons) {
           _completedLessons = newCompletedCount;
+
+          // ========== ACHIEVEMENT TRACKING ==========
+
+          // 1. Track lesson completion
+          await _statsService.recordLessonCompletion(
+            widget.course.title,
+            lesson.title,
+          );
+
+          // 2. Check for perfect score (100%)
+          if (score == 100) {
+            print("Perfect score recorded!");
+            await _statsService.recordPerfectScore();
+          }
+
+          // 3. Track correct answers (for Quick Thinker achievement)
+          if (score >= 70) {
+            // Increment correct answers count - you need to know how many questions were correct
+            // For simplicity, we'll increment by the number of questions in this lesson
+            final correctCount =
+                (lesson.questions.length * (score / 100)).round();
+            for (int i = 0; i < correctCount; i++) {
+              await _statsService.incrementCorrectAnswers();
+            }
+          }
+
+          // 4. Check for fast starter (first lesson in under 5 minutes)
+          if (isFirstLessonOfFirstCourse && startTime != null) {
+            final completionTime =
+                DateTime.now().difference(startTime).inMinutes;
+            print("Lesson completed in $completionTime minutes");
+
+            if (completionTime <= 5) {
+              print("Fast starter achievement unlocked!");
+              await _statsService.recordFastCompletion();
+            }
+          }
+
+          // 5. Check if course is now fully completed (for Master Student)
+          if (newCompletedCount >= lessons.length) {
+            print("Course fully completed!");
+            // This will be detected in the achievements calculation
+          }
+
+          // ========== UPDATE DATABASE ==========
           await _updateCourseProgress(_completedLessons);
         }
+      } else {
+        // Failed the test - show message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Score below 70%. Try again to unlock next lesson.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
       }
-
-      // Show confirmation
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Score updated: $score%'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-
-      // Debug: print updated scores
-      await ScoresRepository.debugPrintScores();
     }
   }
 

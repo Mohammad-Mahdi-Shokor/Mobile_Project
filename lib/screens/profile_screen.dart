@@ -8,6 +8,7 @@ import 'package:mobile_project/services/user_stats_service.dart';
 
 import '../services/user_preferences_services.dart';
 import '../services/database_helper.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfileScreen extends StatefulWidget {
   final VoidCallback? onProfileUpdated;
@@ -21,6 +22,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserPreferencesService _userService = UserPreferencesService.instance;
   final DatabaseService _dbService = DatabaseService();
+  final UserStatsService _statsService = UserStatsService();
   User? _currentUser;
   bool _isLoading = true;
   List<Achievement> _achievements = [];
@@ -31,9 +33,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _loadUserData();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-    final statsService = UserStatsService();
-    await statsService.updateLoginStreak();
-  });
+      final statsService = UserStatsService();
+      await statsService.updateLoginStreak();
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -46,50 +48,117 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<List<Achievement>> _calculateAchievementsProgress() async {
     final achievements = List<Achievement>.from(sampleAchievements);
     final courses = await _dbService.getCourses();
-    
+
     // Calculate total lessons completed
     int totalLessonsCompleted = 0;
     for (var course in courses) {
       totalLessonsCompleted += course.lessonsFinished;
     }
-    
+
     // Calculate registered courses count
     int registeredCoursesCount = courses.length;
-    
+
     // Update achievements based on actual progress
     for (int i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       double newProgress = 0;
-      
+
       switch (achievement.name) {
         case "First Step":
           newProgress = totalLessonsCompleted >= 1 ? 1 : 0;
           break;
         case "Consistent":
-          newProgress = totalLessonsCompleted >= 10 ? 10 : totalLessonsCompleted.toDouble();
+          newProgress =
+              totalLessonsCompleted >= 10
+                  ? 10
+                  : totalLessonsCompleted.toDouble();
           break;
         case "Course Explorer":
-          newProgress = registeredCoursesCount >= 3 ? 3 : registeredCoursesCount.toDouble();
+          newProgress =
+              registeredCoursesCount >= 3
+                  ? 3
+                  : registeredCoursesCount.toDouble();
           break;
         case "Completionist":
-          newProgress = registeredCoursesCount >= 4 ? 4 : registeredCoursesCount.toDouble();
+          newProgress =
+              registeredCoursesCount >= 4
+                  ? 4
+                  : registeredCoursesCount.toDouble();
           break;
         // Add more conditions as needed
         default:
           newProgress = achievement.progress;
       }
-      
+
       achievements[i] = achievement.copyWith(
         progress: newProgress,
         isUnlocked: newProgress >= achievement.target,
       );
     }
-    
+
     return achievements;
   }
 
   void refresh() {
     _loadUserData();
+  }
+
+  Future<void> _shareProgress() async {
+    try {
+      // Get user's progress data
+      final courses = await _dbService.getCourses();
+      int totalLessonsCompleted = 0;
+      int totalCourses = courses.length;
+
+      for (var course in courses) {
+        totalLessonsCompleted += course.lessonsFinished;
+      }
+
+      // Calculate completed achievements
+      final achievements = await _calculateAchievementsProgress();
+      final completedAchievements =
+          achievements.where((a) => a.isCompleted).length;
+      final totalAchievements = achievements.length;
+
+      // Create share message
+      final shareText = '''
+🎯 My Learning Progress 📚
+
+👤 User: ${_currentUser?.username ?? 'Student'}
+📊 Courses: $totalCourses registered
+✅ Lessons: $totalLessonsCompleted completed
+🏆 Achievements: $completedAchievements/$totalAchievements unlocked
+
+Keep learning with me! 💪
+
+#LearningApp #Progress #AchievementUnlocked
+''';
+
+      // Share the progress
+      await Share.share(shareText, subject: 'My Learning Progress');
+
+      // Track the share for Social Learner achievement
+      await _statsService.incrementShareCount();
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Progress shared successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error sharing: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -105,12 +174,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final screenHeight = screenSize.height;
     final isDark = theme.brightness == Brightness.dark;
     final isSmallScreen = screenWidth < 360;
-    final isMediumScreen = screenWidth < 400;
 
     return Container(
-      constraints: BoxConstraints(
-        minHeight: screenHeight,
-      ),
+      constraints: BoxConstraints(minHeight: screenHeight),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
@@ -125,19 +191,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isDark
-                        ? const Color.fromRGBO(217, 217, 217, 100)
-                        : const Color(0xFF3D5CFF),
+                    color:
+                        isDark
+                            ? const Color.fromRGBO(217, 217, 217, 100)
+                            : const Color(0xFF3D5CFF),
                     width: 3,
                   ),
                 ),
                 child: CircleAvatar(
-                  radius: isSmallScreen
-                      ? screenWidth * 0.18
-                      : screenWidth * 0.15,
-                  backgroundImage: displayUser.profilePicture.startsWith('http')
-                      ? NetworkImage(displayUser.profilePicture)
-                      : FileImage(File(displayUser.profilePicture)) as ImageProvider,
+                  radius:
+                      isSmallScreen ? screenWidth * 0.18 : screenWidth * 0.15,
+                  backgroundImage:
+                      displayUser.profilePicture.startsWith('http')
+                          ? NetworkImage(displayUser.profilePicture)
+                          : FileImage(File(displayUser.profilePicture))
+                              as ImageProvider,
                 ),
               ),
               SizedBox(height: screenHeight * 0.02),
@@ -146,9 +214,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 displayUser.username,
                 style: GoogleFonts.poppins(
-                  fontSize: isSmallScreen
-                      ? screenWidth * 0.065
-                      : screenWidth * 0.06,
+                  fontSize:
+                      isSmallScreen ? screenWidth * 0.065 : screenWidth * 0.06,
                   fontWeight: FontWeight.bold,
                   color: theme.colorScheme.onSurface,
                 ),
@@ -162,9 +229,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 displayUser.tag,
                 style: GoogleFonts.poppins(
-                  fontSize: isSmallScreen
-                      ? screenWidth * 0.04
-                      : screenWidth * 0.045,
+                  fontSize:
+                      isSmallScreen ? screenWidth * 0.04 : screenWidth * 0.045,
                   color: theme.colorScheme.onSurface.withOpacity(0.8),
                   fontWeight: FontWeight.w500,
                 ),
@@ -175,9 +241,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Text(
                 "${displayUser.age}, ${displayUser.Gender}",
                 style: GoogleFonts.poppins(
-                  fontSize: isSmallScreen
-                      ? screenWidth * 0.032
-                      : screenWidth * 0.035,
+                  fontSize:
+                      isSmallScreen ? screenWidth * 0.032 : screenWidth * 0.035,
                   color: theme.colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
@@ -190,9 +255,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     'Achievements',
                     style: GoogleFonts.poppins(
-                      fontSize: isSmallScreen
-                          ? screenWidth * 0.055
-                          : screenWidth * 0.05,
+                      fontSize:
+                          isSmallScreen
+                              ? screenWidth * 0.055
+                              : screenWidth * 0.05,
                       fontWeight: FontWeight.bold,
                       color: theme.colorScheme.onSurface,
                     ),
@@ -216,17 +282,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           style: GoogleFonts.poppins(
                             color: const Color(0xFF3D5CFF),
                             fontWeight: FontWeight.w600,
-                            fontSize: isSmallScreen
-                                ? screenWidth * 0.032
-                                : screenWidth * 0.035,
+                            fontSize:
+                                isSmallScreen
+                                    ? screenWidth * 0.032
+                                    : screenWidth * 0.035,
                           ),
                         ),
                         SizedBox(width: screenWidth * 0.01),
                         Icon(
                           Icons.arrow_forward_ios,
-                          size: isSmallScreen
-                              ? screenWidth * 0.032
-                              : screenWidth * 0.035,
+                          size:
+                              isSmallScreen
+                                  ? screenWidth * 0.032
+                                  : screenWidth * 0.035,
                           color: const Color(0xFF3D5CFF),
                         ),
                       ],
@@ -255,7 +323,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: GridView.builder(
                   physics: const NeverScrollableScrollPhysics(),
                   shrinkWrap: true,
-                  itemCount: _achievements.length > 6 ? 6 : _achievements.length,
+                  itemCount:
+                      _achievements.length > 6 ? 6 : _achievements.length,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     mainAxisSpacing: screenWidth * 0.02,
@@ -272,26 +341,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         padding: EdgeInsets.all(screenWidth * 0.025),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: isCompleted
-                              ? a.color.withOpacity(0.2)
-                              : isDark
+                          color:
+                              isCompleted
+                                  ? a.color.withOpacity(0.2)
+                                  : isDark
                                   ? theme.colorScheme.secondary.withOpacity(0.2)
-                                  : theme.colorScheme.secondary.withOpacity(0.3),
+                                  : theme.colorScheme.secondary.withOpacity(
+                                    0.3,
+                                  ),
                           border: Border.all(
-                            color: isCompleted
-                                ? a.color.withOpacity(0.5)
-                                : theme.colorScheme.outline.withOpacity(0.3),
+                            color:
+                                isCompleted
+                                    ? a.color.withOpacity(0.5)
+                                    : theme.colorScheme.outline.withOpacity(
+                                      0.3,
+                                    ),
                             width: isCompleted ? 2 : 1,
                           ),
-                          boxShadow: isCompleted
-                              ? [
-                                  BoxShadow(
-                                    color: a.color.withOpacity(0.3),
-                                    blurRadius: 8,
-                                    spreadRadius: 1,
-                                  ),
-                                ]
-                              : null,
+                          boxShadow:
+                              isCompleted
+                                  ? [
+                                    BoxShadow(
+                                      color: a.color.withOpacity(0.3),
+                                      blurRadius: 8,
+                                      spreadRadius: 1,
+                                    ),
+                                  ]
+                                  : null,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -301,19 +377,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               children: [
                                 Icon(
                                   a.icon,
-                                  size: isSmallScreen
-                                      ? screenWidth * 0.07
-                                      : screenWidth * 0.06,
-                                  color: isCompleted
-                                      ? a.color
-                                      : theme.colorScheme.primary,
+                                  size:
+                                      isSmallScreen
+                                          ? screenWidth * 0.07
+                                          : screenWidth * 0.06,
+                                  color:
+                                      isCompleted
+                                          ? a.color
+                                          : theme.colorScheme.primary,
                                 ),
                                 if (isCompleted)
                                   Positioned(
                                     top: 0,
                                     right: 0,
                                     child: Container(
-                                      padding: EdgeInsets.all(screenWidth * 0.008),
+                                      padding: EdgeInsets.all(
+                                        screenWidth * 0.008,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: Colors.green,
                                         shape: BoxShape.circle,
@@ -337,13 +417,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 a.name,
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
-                                  fontSize: isSmallScreen
-                                      ? screenWidth * 0.028
-                                      : screenWidth * 0.025,
+                                  fontSize:
+                                      isSmallScreen
+                                          ? screenWidth * 0.028
+                                          : screenWidth * 0.025,
                                   color: theme.colorScheme.onSurface,
-                                  fontWeight: isCompleted
-                                      ? FontWeight.w700
-                                      : FontWeight.w500,
+                                  fontWeight:
+                                      isCompleted
+                                          ? FontWeight.w700
+                                          : FontWeight.w500,
                                 ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
@@ -351,13 +433,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             if (isCompleted)
                               Padding(
-                                padding: EdgeInsets.only(top: screenHeight * 0.004),
+                                padding: EdgeInsets.only(
+                                  top: screenHeight * 0.004,
+                                ),
                                 child: Text(
                                   '${(a.percentage * 100).toInt()}%',
                                   style: GoogleFonts.poppins(
-                                    fontSize: isSmallScreen
-                                        ? screenWidth * 0.022
-                                        : screenWidth * 0.02,
+                                    fontSize:
+                                        isSmallScreen
+                                            ? screenWidth * 0.022
+                                            : screenWidth * 0.02,
                                     color: Colors.green,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -370,7 +455,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
                 ),
               ),
-              
+
               // Show "View More" text if there are more than 6 achievements
               if (_achievements.length > 6)
                 Padding(
@@ -378,16 +463,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(
                     '+ ${_achievements.length - 6} more achievements',
                     style: GoogleFonts.poppins(
-                      fontSize: isSmallScreen
-                          ? screenWidth * 0.032
-                          : screenWidth * 0.03,
+                      fontSize:
+                          isSmallScreen
+                              ? screenWidth * 0.032
+                              : screenWidth * 0.03,
                       color: theme.colorScheme.onSurface.withOpacity(0.6),
                       fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
-              
+
               SizedBox(height: screenHeight * 0.03),
+              SizedBox(height: screenHeight * 0.02),
+              Container(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _shareProgress,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D5CFF),
+                    padding: EdgeInsets.symmetric(
+                      vertical: screenHeight * 0.015,
+                      horizontal: screenWidth * 0.05,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  icon: Icon(
+                    Icons.share,
+                    color: Colors.white,
+                    size:
+                        isSmallScreen
+                            ? screenWidth * 0.05
+                            : screenWidth * 0.045,
+                  ),
+                  label: Text(
+                    'Share My Progress',
+                    style: GoogleFonts.poppins(
+                      fontSize:
+                          isSmallScreen
+                              ? screenWidth * 0.04
+                              : screenWidth * 0.038,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),

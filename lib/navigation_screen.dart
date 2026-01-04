@@ -190,7 +190,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   final UserPreferencesService _userService = UserPreferencesService.instance;
-  User? _currentUser;
+  User? currentUser;
   bool _isLoading = true;
 
   Future<void> _loadUserData() async {
@@ -198,7 +198,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
     setState(() => _isLoading = true);
     try {
-      _currentUser = await _userService.getUser();
+      currentUser = await _userService.getUser();
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
