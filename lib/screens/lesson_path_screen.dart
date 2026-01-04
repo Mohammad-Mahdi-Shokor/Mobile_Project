@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
@@ -37,29 +39,25 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _initializeScreen() async {
     setState(() => _isLoading = true);
 
-    // Get lessons from original course if available
+    // Get lessons
     if (widget.originalCourse != null) {
       lessons = _findCourseLessons(widget.originalCourse!.title);
     } else {
       lessons = _findCourseLessons(widget.course.title);
     }
 
-    // Try to find the course in database by title
     await _findDatabaseCourse();
 
-    // Initialize scores and unlocked
     scores = List.generate(lessons.length, (_) => 0);
 
-    // Unlock based on number of finished lessons
-    unlocked = List.generate(
-      lessons.length,
-      (index) => index < _completedLessons,
-    );
-
-    // Always unlock first lesson
-    if (unlocked.isNotEmpty && lessons.isNotEmpty) {
-      unlocked[0] = true;
-    }
+    // FIX: Only unlock lessons that are truly completed
+    // If _completedLessons = 1, that means lesson 0 is completed, lesson 1 should be unlocked but not completed
+    unlocked = List.generate(lessons.length, (index) {
+      // Lesson is unlocked if:
+      // 1. It's the first lesson (always)
+      // 2. The previous lesson is completed (index <= _completedLessons)
+      return index == 0 || index <= _completedLessons;
+    });
 
     setState(() => _isLoading = false);
   }
@@ -102,24 +100,28 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _findDatabaseCourse() async {
     try {
       final allCourses = await _dbService.getCourses();
+      print("Found ${allCourses.length} courses in database"); // Debug
+      
       final databaseCourse = allCourses.firstWhere(
         (course) => course.title == widget.course.title,
-        orElse:
-            () => Course(
-              title: widget.course.title,
-              courseIndex: 0,
-              lessonsFinished: 0,
-            ),
+        orElse: () {
+          print("Course not found in database: ${widget.course.title}"); // Debug
+          return Course(
+            title: widget.course.title,
+            courseIndex: 0,
+            lessonsFinished: 0,
+          );
+        },
       );
 
       _databaseCourseId = databaseCourse.id;
       _completedLessons = databaseCourse.lessonsFinished;
+      print("Loaded from DB: courseId=$_databaseCourseId, completedLessons=$_completedLessons"); // Debug
     } catch (e) {
       print('Error finding database course: $e');
       _completedLessons = 0;
     }
   }
-
   Future<void> startTest(int index) async {
     if (index >= lessons.length || !unlocked[index]) return;
 
@@ -127,50 +129,48 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     final score = await Navigator.push<int>(
       context,
       MaterialPageRoute(
-        builder:
-            (_) => TestScreen(
-              section: lesson.title,
-              questions: lesson.questions,
-              courseId: _databaseCourseId ?? 0,
-              totalLessons: lessons.length,
-              onTestCompleted: () {
-                // Optional callback
-              },
-            ),
+        builder: (_) => TestScreen(
+          section: lesson.title,
+          questions: lesson.questions,
+          courseId: _databaseCourseId ?? 0,
+          totalLessons: lessons.length,
+          onTestCompleted: () {},
+        ),
       ),
     );
 
-    if (score != null) {
-      // Update the score for this lesson
+    if (score != null && mounted) {
+      // Update score for this lesson
       final updatedScores = List<int>.from(scores);
       if (score > updatedScores[index]) {
         updatedScores[index] = score;
       }
 
-      // Determine if we should unlock next lesson
-      final shouldUnlockNext = score >= 70 && index + 1 < lessons.length;
-
-      // Update completed lessons count
-      final newCompletedCount =
-          shouldUnlockNext
-              ? index +
-                  2 // +2 because index is 0-based and we want to unlock next
-              : _completedLessons;
+      // CRITICAL FIX: Only unlock/save if score is passing
+      final isPassingScore = score >= 70;
+      final shouldUnlockNext = isPassingScore && index + 1 < lessons.length;
 
       setState(() {
         scores = updatedScores;
-
+        
         if (shouldUnlockNext) {
+          // Only unlock next lesson if passing score
           final updatedUnlocked = List<bool>.from(unlocked);
           updatedUnlocked[index + 1] = true;
           unlocked = updatedUnlocked;
-          _completedLessons = newCompletedCount;
         }
       });
 
-      // Update progress in database
-      if (shouldUnlockNext) {
-        await _updateCourseProgress(newCompletedCount);
+      // CRITICAL FIX: Only save progress to database if passing
+      if (isPassingScore) {
+        // Calculate how many lessons are completed (all up to current index)
+        final newCompletedCount = index + 1;
+        
+        // Only update if this increases progress
+        if (newCompletedCount > _completedLessons) {
+          _completedLessons = newCompletedCount;
+          await _updateCourseProgress(_completedLessons);
+        }
       }
     }
   }
@@ -179,57 +179,45 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _updateCourseProgress(int completedLessons) async {
     try {
       if (_databaseCourseId != null) {
-        // Get the current course from database
         final course = await _dbService.getCourseById(_databaseCourseId!);
         if (course != null) {
-          // Update lessons finished
           final updatedCourse = Course(
             id: course.id,
             title: course.title,
             courseIndex: course.courseIndex,
             lessonsFinished: completedLessons,
           );
-
           await _dbService.updateCourse(updatedCourse);
-        } else {
-          // Course not found in database, insert new one
-          final newCourse = Course(
-            title: widget.course.title,
-            courseIndex: 0,
-            lessonsFinished: completedLessons,
-          );
-
-          final newId = await _dbService.insertCourse(newCourse);
-          _databaseCourseId = newId;
         }
       } else {
-        // No database course yet, create one
         final newCourse = Course(
           title: widget.course.title,
           courseIndex: 0,
           lessonsFinished: completedLessons,
         );
-
         final newId = await _dbService.insertCourse(newCourse);
         _databaseCourseId = newId;
       }
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Progress saved!'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Progress saved!'),
+            duration: Duration(seconds: 1),
+          ),
+        );
+      }
     } catch (e) {
       print('Error updating progress: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saving progress: $e'),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -242,23 +230,35 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       );
     }
 
-    final nodeSpacing = 140.0;
+    final theme = Theme.of(context);
+    final nodeSpacing = 120.0;
     final totalLessons = lessons.length;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.course.title),
-        backgroundColor: Theme.of(context).primaryColor,
+        title: Text(
+          widget.course.title,
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: const Color(0xFF3D5CFF),
+        foregroundColor: Colors.white,
         actions: [
-          // Show progress
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Center(
-              child: Text(
-                '$_completedLessons/$totalLessons',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$_completedLessons/$totalLessons',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
                 ),
               ),
             ),
@@ -266,39 +266,46 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         ],
       ),
       body: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
         child: SizedBox(
-          height: totalLessons * nodeSpacing,
-          child: Stack(
-            children: [
-              CustomPaint(
-                size: Size(double.infinity, totalLessons * nodeSpacing),
-                painter: LessonPathPainter(totalLessons, unlocked: unlocked),
-              ),
-              for (int i = 0; i < totalLessons; i++)
-                Positioned(
-                  top: i * nodeSpacing,
-                  left:
-                      i % 2 == 0
-                          ? MediaQuery.of(context).size.width * 0.15
-                          : MediaQuery.of(context).size.width * 0.55,
-                  child: MouseRegion(
-                    cursor:
-                        unlocked[i]
-                            ? SystemMouseCursors.click
-                            : SystemMouseCursors.forbidden,
-                    child: GestureDetector(
-                      onTap: unlocked[i] ? () => startTest(i) : null,
-                      child: CourseNode(
-                        title: lessons[i].title,
-                        index: i + 1,
-                        locked: !unlocked[i],
-                        percentage: scores[i],
-                        isCompleted: i < _completedLessons,
+          height: totalLessons * nodeSpacing + 30,
+          child: Padding(
+            padding: const EdgeInsets.only(top:20.0),
+            child: Stack(
+              children: [
+                CustomPaint(
+                  size: Size(double.infinity, totalLessons * nodeSpacing),
+                  painter: LessonPathPainter(
+                    totalLessons, 
+                    unlocked: unlocked,
+                    theme: theme,
+                  ),
+                ),
+                for (int i = 0; i < totalLessons; i++)
+                  Positioned(
+                    top: i * nodeSpacing,
+                    left: i % 2 == 0
+                        ? MediaQuery.of(context).size.width * 0.18
+                        : MediaQuery.of(context).size.width * 0.62,
+                    child: MouseRegion(
+                      cursor: unlocked[i]
+                          ? SystemMouseCursors.click
+                          : SystemMouseCursors.basic,
+                      child: GestureDetector(
+                        onTap: unlocked[i] ? () => startTest(i) : null,
+                        child: CourseNode(
+                          title: lessons[i].title,
+                          index: i + 1,
+                          locked: !unlocked[i],
+                          percentage: scores[i],
+                          isCompleted: i < _completedLessons,
+                          theme: theme,
+                        ),
                       ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -306,13 +313,14 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   }
 }
 
-// CourseNode Widget (unchanged from your code)
+// Updated CourseNode with better UI
 class CourseNode extends StatefulWidget {
   final String title;
   final int index;
   final bool locked;
   final int percentage;
   final bool isCompleted;
+  final ThemeData theme;
 
   const CourseNode({
     super.key,
@@ -321,6 +329,7 @@ class CourseNode extends StatefulWidget {
     required this.locked,
     this.percentage = 0,
     this.isCompleted = false,
+    required this.theme,
   });
 
   @override
@@ -332,108 +341,138 @@ class _CourseNodeState extends State<CourseNode> {
 
   @override
   Widget build(BuildContext context) {
-    final nodeSize = 80.0;
+    final nodeSize = 70.0;
+    final isDark = widget.theme.brightness == Brightness.dark;
 
-    // Determine node color
-    Color primaryColor;
+    // Determine node colors based on state
+    Color nodeColor;
+    Color borderColor;
+    Color textColor = Colors.white;
+
     if (widget.locked) {
-      primaryColor = Colors.grey;
+      nodeColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+      borderColor = isDark ? Colors.grey[600]! : Colors.grey[400]!;
+      textColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
     } else if (widget.isCompleted) {
-      primaryColor = Colors.green;
+      nodeColor = const Color(0xFF4CAF50); // Green for completed
+      borderColor = const Color(0xFF388E3C);
+    } else if (hovering) {
+      nodeColor = const Color(0xFF5C6BC0); // Hover state
+      borderColor = const Color(0xFF3D5CFF);
     } else {
-      primaryColor = Theme.of(context).primaryColor;
+      nodeColor = const Color(0xFF3D5CFF); // Primary blue
+      borderColor = const Color(0xFF1E40AF);
     }
 
     return Column(
       children: [
         AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          transform:
-              hovering
-                  ? (Matrix4.identity()
-                    ..scale(1.1, 1.1, 1.0)
-                    ..rotateX(-0.2))
-                  : (Matrix4.identity()..rotateX(-0.2)),
+          duration: const Duration(milliseconds: 300),
+          transform: Matrix4.identity()
+            ..scale(hovering && !widget.locked ? 1.15 : 1.0),
           child: MouseRegion(
             onEnter: (_) => setState(() => hovering = true),
             onExit: (_) => setState(() => hovering = false),
             child: Stack(
               alignment: Alignment.center,
               children: [
+                // Outer glow for unlocked nodes
+                if (!widget.locked && hovering)
+                  Container(
+                    width: nodeSize + 12,
+                    height: nodeSize + 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: nodeColor.withOpacity(0.2),
+                    ),
+                  ),
+
+                // Main node
                 Container(
                   width: nodeSize,
                   height: nodeSize,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [primaryColor, primaryColor.withOpacity(0.8)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                    color: nodeColor,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: borderColor,
+                      width: 3,
                     ),
-                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 6,
-                        offset: const Offset(3, 3),
+                        color: Colors.black.withOpacity(
+                          widget.locked ? 0.1 : 0.25,
+                        ),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Center(
-                    child:
-                        widget.locked
-                            ? const Icon(
-                              Icons.lock,
+                    child: widget.locked
+                        ? Icon(
+                            Icons.lock,
+                            color: textColor,
+                            size: 24,
+                          )
+                        : Text(
+                            widget.index.toString(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                               color: Colors.white,
-                              size: 30,
-                            )
-                            : Text(
-                              widget.index.toString(),
-                              style: GoogleFonts.poppins(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
                             ),
+                          ),
                   ),
                 ),
-                // Show checkmark if completed
+
+                // Completion checkmark
                 if (widget.isCompleted && !widget.locked)
                   Positioned(
-                    top: 4,
-                    left: 4,
+                    top: 2,
+                    right: 2,
                     child: Container(
                       padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.green,
+                        color: Colors.white,
+                        border: Border.all(color: Colors.green, width: 1.5),
                       ),
                       child: const Icon(
                         Icons.check,
-                        size: 16,
-                        color: Colors.white,
+                        size: 12,
+                        color: Colors.green,
                       ),
                     ),
                   ),
-                // Show percentage if test taken
+
+                // Score badge
                 if (!widget.locked && widget.percentage > 0)
                   Positioned(
-                    top: 4,
-                    right: 4,
+                    bottom: -4,
                     child: Container(
-                      padding: const EdgeInsets.all(6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color:
-                            widget.percentage < 50
-                                ? Colors.red.withOpacity(0.8)
-                                : widget.percentage < 80
-                                ? Colors.yellow.withOpacity(0.8)
-                                : Colors.green.withOpacity(0.8),
+                        color: widget.percentage < 50
+                            ? Colors.red
+                            : widget.percentage < 80
+                                ? Colors.orange
+                                : Colors.green,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
                       child: Text(
                         '${widget.percentage}%',
                         style: GoogleFonts.poppins(
-                          fontSize: 12,
+                          fontSize: 10,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),
@@ -444,26 +483,34 @@ class _CourseNodeState extends State<CourseNode> {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         SizedBox(
-          width: 120,
+          width: 100,
           child: Column(
             children: [
               Text(
                 widget.title,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: Colors.black87,
+                  fontSize: 11,
+                  color: widget.locked
+                      ? (isDark ? Colors.grey[500] : Colors.grey[600])
+                      : (isDark ? Colors.white : Colors.black87),
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              if (widget.isCompleted)
+              if (widget.isCompleted && !widget.locked)
+                const SizedBox(height: 2),
+              if (widget.isCompleted && !widget.locked)
                 Text(
                   'Completed',
-                  style: GoogleFonts.poppins(fontSize: 10, color: Colors.green),
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
             ],
           ),
@@ -473,47 +520,108 @@ class _CourseNodeState extends State<CourseNode> {
   }
 }
 
-// LessonPathPainter (unchanged from your code)
+// Updated LessonPathPainter with better curves
 class LessonPathPainter extends CustomPainter {
   final int nodeCount;
   final List<bool> unlocked;
+  final ThemeData theme;
 
-  LessonPathPainter(this.nodeCount, {required this.unlocked});
+  LessonPathPainter(
+    this.nodeCount, {
+    required this.unlocked,
+    required this.theme,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final spacing = size.height / nodeCount;
+    final isDark = theme.brightness == Brightness.dark;
 
     for (int i = 0; i < nodeCount - 1; i++) {
       final isSegmentUnlocked = unlocked[i] && unlocked[i + 1];
-      final paint =
-          Paint()
-            ..color =
-                isSegmentUnlocked ? Colors.blue.shade200 : Colors.grey.shade400
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 4;
+      
+      final paint = Paint()
+        ..color = isSegmentUnlocked
+            ? const Color(0xFF3D5CFF).withOpacity(0.7)
+            : (isDark ? Colors.grey[700]! : Colors.grey[300]!)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = isSegmentUnlocked ? 3.5 : 2.5
+        ..strokeCap = StrokeCap.round;
 
-      final startX =
-          i % 2 == 0 ? size.width * 0.15 + 40 : size.width * 0.55 + 40;
-      final startY = i * spacing + 40;
+      // Calculate positions
+      final startX = i % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
+      final startY = i * spacing + 35;
 
-      final endX =
-          (i + 1) % 2 == 0 ? size.width * 0.15 + 40 : size.width * 0.55 + 40;
-      final endY = (i + 1) * spacing + 40;
+      final endX = (i + 1) % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
+      final endY = (i + 1) * spacing + 35;
 
-      final controlX = size.width / 2;
-      final controlY = startY + spacing / 2;
+      // Control points for smoother curve
+      final controlX1 = startX + (endX - startX) * 0.5;
+      final controlY1 = startY + spacing * 0.3;
+      final controlX2 = startX + (endX - startX) * 0.5;
+      final controlY2 = startY + spacing * 0.7;
 
+      // Draw curved path
       final path = Path();
       path.moveTo(startX, startY);
-      path.quadraticBezierTo(controlX, controlY, endX, endY);
+      path.cubicTo(
+        controlX1, controlY1,
+        controlX2, controlY2,
+        endX, endY,
+      );
 
       canvas.drawPath(path, paint);
+
+      // Add arrowhead for direction
+      if (isSegmentUnlocked) {
+        final arrowPaint = Paint()
+          ..color = const Color(0xFF3D5CFF)
+          ..style = PaintingStyle.fill;
+
+        // Calculate arrow position at 70% of the path
+        final t = 0.7;
+        final arrowX = _cubicBezier(startX, controlX1, controlX2, endX, t);
+        final arrowY = _cubicBezier(startY, controlY1, controlY2, endY, t);
+
+        // Calculate tangent for arrow direction
+        final dx = _cubicBezierDerivative(startX, controlX1, controlX2, endX, t);
+        final dy = _cubicBezierDerivative(startY, controlY1, controlY2, endY, t);
+        final angle = atan2(dy, dx);
+
+        // Draw arrow
+        canvas.save();
+        canvas.translate(arrowX, arrowY);
+        canvas.rotate(angle);
+
+        final arrowPath = Path();
+        arrowPath.moveTo(0, 0);
+        arrowPath.lineTo(-8, -5);
+        arrowPath.lineTo(-8, 5);
+        arrowPath.close();
+
+        canvas.drawPath(arrowPath, arrowPaint);
+        canvas.restore();
+      }
     }
+  }
+
+  // Cubic Bézier calculation
+  double _cubicBezier(double a, double b, double c, double d, double t) {
+    return pow(1 - t, 3) * a +
+           3 * pow(1 - t, 2) * t * b +
+           3 * (1 - t) * pow(t, 2) * c +
+           pow(t, 3) * d;
+  }
+
+  // Cubic Bézier derivative
+  double _cubicBezierDerivative(double a, double b, double c, double d, double t) {
+    return 3 * pow(1 - t, 2) * (b - a) +
+           6 * (1 - t) * t * (c - b) +
+           3 * pow(t, 2) * (d - c);
   }
 
   @override
   bool shouldRepaint(covariant LessonPathPainter oldDelegate) {
-    return oldDelegate.unlocked != unlocked;
+    return oldDelegate.unlocked != unlocked || oldDelegate.theme != theme;
   }
 }

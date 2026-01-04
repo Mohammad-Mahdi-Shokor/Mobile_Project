@@ -8,6 +8,21 @@ import '../services/database_helper.dart';
 class LearningScreen extends StatefulWidget {
   const LearningScreen({super.key});
 
+  IconData _getCourseIcon(String courseTitle) {
+    switch (courseTitle.toLowerCase()) {
+      case 'cybersecurity':
+        return Icons.security;
+      case 'mobile development':
+        return Icons.phone_android;
+      case 'physics':
+        return Icons.science;
+      case 'philosophy':
+        return Icons.psychology;
+      default:
+        return Icons.school;
+    }
+  }
+
   @override
   State<LearningScreen> createState() => _LearningScreenState();
 }
@@ -73,9 +88,7 @@ class _LearningScreenState extends State<LearningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const double cardWidth = 160;
-    const double cardHeight = 160;
-    const Color cardColor = Color(0xFFCDEBFD);
+    final theme = Theme.of(context);
 
     return _isLoading
         ? Center(child: CircularProgressIndicator())
@@ -85,128 +98,191 @@ class _LearningScreenState extends State<LearningScreen> {
             itemCount: registeredCoursesWithProgress.length,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1,
+              mainAxisSpacing: 10,    // Reduced from 12
+              crossAxisSpacing: 10,   // Reduced from 12
+              childAspectRatio: 0.9,  // Slightly taller
             ),
             itemBuilder: (context, index) {
+              final isDark = theme.brightness == Brightness.dark;
               final sampleCourse = registeredCoursesWithProgress[index];
               final isRegistered = _isCourseRegistered(sampleCourse.title);
+              final lessonsFinished = _getLessonsFinished(sampleCourse.title);
+              final totalLessons = _getTotalLessons(sampleCourse.title);
+              final progress =
+                  totalLessons > 0 ? lessonsFinished / totalLessons : 0.0;
 
-              return Center(
-                child: SizedBox(
-                  width: cardWidth,
-                  height: cardHeight,
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => CourseInfoScreen(course: sampleCourse),
-                        ),
-                      ).then((_) {
-                        // Refresh data when returning
-                        _loadRegisteredCourses();
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Course Title
-                          SizedBox(
-                            height: 80,
-                            child: Center(
-                              child: Text(
-                                sampleCourse.title,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF0F0D28),
-                                ),
-                                textAlign: TextAlign.center,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
+              return InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => CourseInfoScreen(course: sampleCourse),
+                    ),
+                  ).then((_) => _loadRegisteredCourses());
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.all(0),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow:
+                        isDark
+                            ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
                               ),
+                            ]
+                            : [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF1F1F39,
+                                ).withOpacity(0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                    border: Border.all(
+                      color: theme.colorScheme.outline.withOpacity(
+                        isDark ? 0.1 : 0.15,
+                      ),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Course icon/title row
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3D5CFF).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              widget._getCourseIcon(sampleCourse.title),
+                              color: const Color(0xFF3D5CFF),
+                              size: 24,
                             ),
                           ),
-
-                          // Bottom Section - View Course or Progress
-                          isRegistered
-                              ? continueCourse(sampleCourse.title, context)
-                              : viewCourse(),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              sampleCourse.title,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
-                    ),
+
+                      const SizedBox(height: 12),
+
+                      // Description
+                      Text(
+                        sampleCourse.description,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface.withOpacity(
+                            isDark ? 0.7 : 0.6,
+                          ),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Progress bar or register button
+                      if (isRegistered)
+                        Column(
+                          children: [
+                            LinearProgressIndicator(
+                              value: progress,
+                              backgroundColor: theme.colorScheme.outline
+                                  .withOpacity(0.2),
+                              color: const Color(0xFF3D5CFF),
+                              borderRadius: BorderRadius.circular(4),
+                              minHeight: 6,
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '$lessonsFinished/$totalLessons lessons',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    color: theme.colorScheme.onSurface
+                                        .withOpacity(0.6),
+                                  ),
+                                ),
+                                Text(
+                                  '${(progress * 100).toInt()}%',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF3D5CFF),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                isDark
+                                    ? const Color(0xFF18193C)
+                                    : const Color(0xFFE6F2FF),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF3D5CFF).withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Start Learning',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  color: const Color(0xFF3D5CFF),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.arrow_forward,
+                                size: 14,
+                                color: const Color(0xFF3D5CFF),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               );
             },
           ),
         );
-  }
-
-  Row viewCourse() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Container(
-          padding: EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Color(0xFF0F0D28),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            'View Course',
-            style: GoogleFonts.poppins(color: Colors.white, fontSize: 10),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget continueCourse(String courseTitle, BuildContext context) {
-    // Get actual progress for this course
-    final lessonsFinished = _getLessonsFinished(courseTitle);
-    final totalLessons = _getTotalLessons(courseTitle);
-
-    return Row(
-      children: [
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: lessonsFinished / totalLessons),
-          duration: const Duration(milliseconds: 800),
-          builder: (context, value, _) {
-            return SizedBox(
-              width: 30,
-              height: 30,
-              child: CircularPercentage(percentage: value),
-            );
-          },
-        ),
-        const Spacer(),
-        Text(
-          "$lessonsFinished ",
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF0F0D28),
-          ),
-        ),
-        Text(
-          "/ $totalLessons",
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: Color(0xFF0F0D28),
-          ),
-        ),
-      ],
-    );
   }
 }
