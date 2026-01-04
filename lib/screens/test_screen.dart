@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/services/user_stats_service.dart';
 
 class TestScreen extends StatefulWidget {
   final String section;
@@ -29,6 +30,7 @@ class _TestScreenState extends State<TestScreen> {
   bool answered = false;
   int selectedIndex = -1;
   late List<Answer> currentAnswers;
+  final UserStatsService _statsService = UserStatsService();
 
   @override
   void initState() {
@@ -45,7 +47,17 @@ class _TestScreenState extends State<TestScreen> {
     currentAnswers = answers;
   }
 
-  void _showTestResult(int score) {
+  void _showTestResult(int score) async {
+    // Track achievements
+    if (score == 100) {
+      await _statsService.recordPerfectScore();
+    }
+
+    // Increment correct answers count (only if they passed)
+    if (score >= 70) {
+      await _statsService.incrementCorrectAnswers();
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -75,10 +87,7 @@ class _TestScreenState extends State<TestScreen> {
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Close dialog
-                  Navigator.pop(
-                    context,
-                    score,
-                  ); // Return to previous screen with score
+                  Navigator.pop(context, score); // Return with score
                 },
                 child: const Text('OK'),
               ),

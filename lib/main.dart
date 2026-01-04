@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_project/navigation_screen.dart';
+import 'package:mobile_project/services/profile_state.dart';
+import 'package:mobile_project/services/user_stats_service.dart';
 import 'package:mobile_project/widgets/theme.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'screens/register_screen.dart';
@@ -11,12 +14,20 @@ import 'services/user_preferences_services.dart';
 void main() async {
   // Initialize sqflite for desktop platforms
   WidgetsFlutterBinding.ensureInitialized();
+  final statsService = UserStatsService();
+  await statsService.updateLoginStreak();
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ProfileState(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {

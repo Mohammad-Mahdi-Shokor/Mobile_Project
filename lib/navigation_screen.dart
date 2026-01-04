@@ -29,7 +29,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   void initState() {
     super.initState();
     currentScreen = LearningScreen();
-
     _loadUserData();
   }
 
@@ -37,7 +36,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
     if (_selectedIndex == 0) {
       currentScreen = LearningScreen();
     } else {
-      currentScreen = const ProfileScreen();
+      currentScreen = ProfileScreen(
+        key: UniqueKey(), // Add a unique key to force rebuild
+      );
+      // Refresh user data when ProfileScreen is shown
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _loadUserData();
+        }
+      });
     }
   }
 
@@ -71,7 +78,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
     final theme = Theme.of(context);
     return Drawer(
       backgroundColor: theme.drawerTheme.backgroundColor,
-
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +93,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 ),
               ),
             ),
-
             ListTile(
               leading: Icon(
                 Icons.book,
@@ -111,7 +116,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 });
               },
             ),
-
             if (coursesExpanded)
               ...courses.map(
                 (course) => Padding(
@@ -159,9 +163,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 },
               );
             }),
-
             const Spacer(),
-
             ListTile(
               leading: Icon(
                 Icons.settings,
@@ -192,10 +194,18 @@ class _NavigationScreenState extends State<NavigationScreen> {
   bool _isLoading = true;
 
   Future<void> _loadUserData() async {
+    if (!mounted) return;
+
     setState(() => _isLoading = true);
-    _currentUser = await _userService.getUser();
-    setState(() => _isLoading = false);
+    try {
+      _currentUser = await _userService.getUser();
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -203,16 +213,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    // Use SharedPreferences user if exists, otherwise use sampleUser as fallback
-    final displayUser = _currentUser ?? sampleUser;
     return Scaffold(
-      appBar: ScreenAppBar(
-        context,
-        _selectedIndex,
-        widget.onToggleTheme,
-        displayUser.FirstName,
-      ),
-
+      appBar: ScreenAppBar(context, _selectedIndex, widget.onToggleTheme),
       drawer: _selectedIndex == 0 ? _buildDrawer() : null,
       body: currentScreen,
       bottomNavigationBar: CurvedNavigationBar(
@@ -240,6 +242,15 @@ class _NavigationScreenState extends State<NavigationScreen> {
             _selectedIndex = index;
             switchScreen();
           });
+
+          // Force refresh when tapping Profile tab
+          if (index == 1) {
+            Future.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) {
+                _loadUserData();
+              }
+            });
+          }
         },
       ),
     );

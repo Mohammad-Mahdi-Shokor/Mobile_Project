@@ -1,0 +1,29 @@
+import 'package:flutter/material.dart';
+import 'package:mobile_project/models/data.dart';
+import 'package:mobile_project/services/user_preferences_services.dart';
+
+class ProfileState extends ChangeNotifier {
+  User? _currentUser;
+  final UserPreferencesService _userService = UserPreferencesService.instance;
+  
+  User? get currentUser => _currentUser;
+  
+  ProfileState() {
+    _loadUserData();
+  }
+  
+  Future<void> _loadUserData() async {
+    _currentUser = await _userService.getUser();
+    notifyListeners();
+  }
+  
+  Future<void> refreshUser() async {
+    await _loadUserData();
+  }
+  
+  Future<void> updateProfile(User user) async {
+    await _userService.saveUser(user);
+    _currentUser = user;
+    notifyListeners();
+  }
+}

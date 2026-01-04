@@ -125,15 +125,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
 
     if (widget.isEditing) {
-      Navigator.pop(context, true);
+      Navigator.pop(context, user); // ← Return the updated user
     } else {
       await _userService.setFirstLaunchCompleted();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => NavigationScreen(
-            onToggleTheme: widget.onToggleTheme, // ← Required
-          ),
+          builder: (_) => NavigationScreen(onToggleTheme: widget.onToggleTheme),
         ),
       );
     }
@@ -173,39 +171,42 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(
-        builder: (_) => UserProfileScreen(
-          isEditing: false,
-          onToggleTheme: widget.onToggleTheme,
-        ),
+        builder:
+            (_) => UserProfileScreen(
+              isEditing: false,
+              onToggleTheme: widget.onToggleTheme,
+            ),
       ),
       (route) => false,
     );
   }
+
   void _showDeleteConfirmation() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This action is permanent and cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteAccount();
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Colors.red),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Delete Account'),
+            content: const Text(
+              'This action is permanent and cannot be undone.',
             ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _deleteAccount();
+                },
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -218,9 +219,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             radius: 60,
             backgroundColor: Colors.blue,
             child: ClipOval(
-              child: _profileImage.isEmpty
-                  ? const Icon(Icons.person, size: 60)
-                  : _profileImage.startsWith('http')
+              child:
+                  _profileImage.isEmpty
+                      ? const Icon(Icons.person, size: 60)
+                      : _profileImage.startsWith('http')
                       ? Image.network(_profileImage, fit: BoxFit.cover)
                       : Image.file(File(_profileImage), fit: BoxFit.cover),
             ),
@@ -242,25 +244,26 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void _showImageSourceDialog() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Choose Image Source'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.gallery);
-            },
-            child: const Text('Gallery'),
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Choose Image Source'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+                child: const Text('Gallery'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+                child: const Text('Camera'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _pickImage(ImageSource.camera);
-            },
-            child: const Text('Camera'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -273,99 +276,119 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           style: GoogleFonts.poppins(),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    _buildAvatar(),
-                    const SizedBox(height: 30),
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      _buildAvatar(),
+                      const SizedBox(height: 30),
 
-                    TextFormField(
-                      controller: _usernameController,
-                      decoration: const InputDecoration(labelText: 'Username'),
-                      validator: (v) =>
-                          v == null || v.length < 3 ? 'Invalid username' : null,
-                    ),
-                    const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                        ),
+                        validator:
+                            (v) =>
+                                v == null || v.length < 3
+                                    ? 'Invalid username'
+                                    : null,
+                      ),
+                      const SizedBox(height: 16),
 
-                    TextFormField(
-                      controller: _firstNameController,
-                      decoration:
-                          const InputDecoration(labelText: 'First Name'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    TextFormField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Age'),
-                    ),
-                    const SizedBox(height: 16),
-
-                    DropdownButtonFormField<String>(
-                      value: _selectedGender,
-                      decoration: const InputDecoration(labelText: 'Gender'),
-                      items: ['Male', 'Female', 'Rather not say']
-                          .map((g) =>
-                              DropdownMenuItem(value: g, child: Text(g)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedGender = v!),
-                    ),
-                    const SizedBox(height: 16),
-
-                    DropdownButtonFormField<String>(
-                      value:
-                          _tagController.text.isEmpty ? null : _tagController.text,
-                      decoration:
-                          const InputDecoration(labelText: 'Profession'),
-                      items: _availableTags
-                          .map((t) =>
-                              DropdownMenuItem(value: t, child: Text(t)))
-                          .toList(),
-                      onChanged: (v) => _tagController.text = v!,
-                    ),
-
-                    const SizedBox(height: 30),
-
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _saveUser,
-                        child: Text(
-                          widget.isEditing ? 'Update Profile' : 'Get Started',
+                      TextFormField(
+                        controller: _firstNameController,
+                        decoration: const InputDecoration(
+                          labelText: 'First Name',
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
 
-                    if (widget.isEditing) ...[
-                      const SizedBox(height: 20),
+                      TextFormField(
+                        controller: _ageController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Age'),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _selectedGender,
+                        decoration: const InputDecoration(labelText: 'Gender'),
+                        items:
+                            ['Male', 'Female', 'Rather not say']
+                                .map(
+                                  (g) => DropdownMenuItem(
+                                    value: g,
+                                    child: Text(g),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) => setState(() => _selectedGender = v!),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value:
+                            _tagController.text.isEmpty
+                                ? null
+                                : _tagController.text,
+                        decoration: const InputDecoration(
+                          labelText: 'Profession',
+                        ),
+                        items:
+                            _availableTags
+                                .map(
+                                  (t) => DropdownMenuItem(
+                                    value: t,
+                                    child: Text(t),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged: (v) => _tagController.text = v!,
+                      ),
+
+                      const SizedBox(height: 30),
+
                       SizedBox(
                         width: double.infinity,
-                        height: 45,
-                        child: OutlinedButton(
-                          onPressed: _showDeleteConfirmation,
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: Colors.red),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: _saveUser,
                           child: Text(
-                            'Delete Account',
-                            style: TextStyle(color: Colors.red, fontSize: 16),
+                            widget.isEditing ? 'Update Profile' : 'Get Started',
                           ),
                         ),
                       ),
+
+                      if (widget.isEditing) ...[
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 45,
+                          child: OutlinedButton(
+                            onPressed: _showDeleteConfirmation,
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: Colors.red),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Delete Account',
+                              style: TextStyle(color: Colors.red, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
     );
   }
 }

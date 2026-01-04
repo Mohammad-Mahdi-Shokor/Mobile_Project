@@ -68,27 +68,6 @@ class Answer {
   Answer({required this.answer});
 }
 
-class Achievement {
-  final Icon icon;
-  final String name;
-  final double percentage;
-  Achievement(this.icon, this.name, {this.percentage = 0});
-
-  // Convert to Map for SQL insert
-  Map<String, dynamic> toMap() {
-    return {'name': name, 'percentage': percentage};
-  }
-
-  // Convert from SQL to Model
-  factory Achievement.fromMap(Map<String, dynamic> map) {
-    return Achievement(
-      Icon(Icons.star), // Default icon, you can customize this
-      map['name'] ?? '',
-      percentage: (map['percentage'] as num?)?.toDouble() ?? 0.0,
-    );
-  }
-}
-
 class User {
   final String username;
   final String FirstName;
@@ -250,56 +229,6 @@ final User sampleUser = User(
   registedCoursesIndexes: [0, 1],
 );
 double iconSize = 30;
-List<Achievement> sampleAchievements = [
-  Achievement(
-    Icon(Icons.school, color: Colors.blue, size: iconSize),
-    "Course 1",
-  ),
-  Achievement(
-    Icon(Icons.school, color: Colors.green, size: iconSize),
-    "Course 2",
-  ),
-  Achievement(
-    Icon(Icons.assignment_turned_in, color: Colors.orange, size: iconSize),
-    "Assign 1",
-  ),
-  Achievement(
-    Icon(Icons.assignment_turned_in, color: Colors.deepOrange, size: iconSize),
-    "Assign 2",
-  ),
-  Achievement(
-    Icon(Icons.emoji_events, color: Colors.amber, size: iconSize),
-    "Quiz 1",
-  ),
-  Achievement(
-    Icon(Icons.ondemand_video, color: Colors.redAccent, size: iconSize),
-    "Video 1",
-  ),
-  Achievement(
-    Icon(Icons.forum, color: Colors.purple, size: iconSize),
-    "Forum 1",
-  ),
-  Achievement(
-    Icon(Icons.star, color: Colors.yellow, size: iconSize),
-    "Skill 1",
-  ),
-  Achievement(
-    Icon(Icons.build, color: Colors.teal, size: iconSize),
-    "Project 1",
-  ),
-  Achievement(
-    Icon(Icons.local_fire_department, color: Colors.red, size: iconSize),
-    "Points 1",
-  ),
-  Achievement(
-    Icon(Icons.whatshot, color: Colors.orangeAccent, size: iconSize),
-    "Streak 1",
-  ),
-  Achievement(
-    Icon(Icons.article, color: Colors.blueGrey, size: iconSize),
-    "Reader 1",
-  ),
-];
 
 final List<RegisteredCourse> registeredCoursesWithProgress = [
   RegisteredCourse(
@@ -702,4 +631,168 @@ final List<List<Lesson>> allCourseLessons = [
       ],
     ),
   ],
+];
+
+class Achievement {
+  final IconData icon;
+  final String name;
+  final String description;
+  final double progress;
+  final double target;
+  final bool isUnlocked;
+  final AchievementType type;
+  final Color color;
+
+  Achievement({
+    required this.icon,
+    required this.name,
+    required this.description,
+    this.progress = 0,
+    required this.target,
+    this.isUnlocked = false,
+    required this.type,
+    required this.color,
+  });
+
+  double get percentage => (progress / target).clamp(0.0, 1.0);
+  bool get isCompleted => progress >= target;
+
+  Achievement copyWith({
+    double? progress,
+    bool? isUnlocked,
+  }) {
+    return Achievement(
+      icon: icon,
+      name: name,
+      description: description,
+      progress: progress ?? this.progress,
+      target: target,
+      isUnlocked: isUnlocked ?? this.isUnlocked,
+      type: type,
+      color: color,
+    );
+  }
+}
+
+enum AchievementType {
+  courseCompletion,
+  perfectScore,
+  streak,
+  speed,
+  consistency,
+  explorer,
+  master,
+  social,
+}
+
+// Update your sample achievements with conditions
+List<Achievement> sampleAchievements = [
+  Achievement(
+    icon: Icons.school,
+    name: "First Step",
+    description: "Complete your first lesson",
+    progress: 0,
+    target: 1,
+    type: AchievementType.courseCompletion,
+    color: Colors.blue,
+  ),
+  Achievement(
+    icon: Icons.emoji_events,
+    name: "Perfect Score",
+    description: "Get 100% on any test",
+    progress: 0,
+    target: 1,
+    type: AchievementType.perfectScore,
+    color: Colors.amber,
+  ),
+  Achievement(
+    icon: Icons.local_fire_department,
+    name: "3-Day Streak",
+    description: "Learn for 3 consecutive days",
+    progress: 0,
+    target: 3,
+    type: AchievementType.streak,
+    color: Colors.red,
+  ),
+  Achievement(
+    icon: Icons.timer,
+    name: "Speed Learner",
+    description: "Complete 5 lessons in one day",
+    progress: 0,
+    target: 5,
+    type: AchievementType.speed,
+    color: Colors.green,
+  ),
+  Achievement(
+    icon: Icons.trending_up,
+    name: "Consistent",
+    description: "Complete 10 lessons total",
+    progress: 0,
+    target: 10,
+    type: AchievementType.consistency,
+    color: Colors.purple,
+  ),
+  Achievement(
+    icon: Icons.explore,
+    name: "Course Explorer",
+    description: "Register for 3 different courses",
+    progress: 0,
+    target: 3,
+    type: AchievementType.explorer,
+    color: Colors.teal,
+  ),
+  Achievement(
+    icon: Icons.star,
+    name: "Master Student",
+    description: "Complete all lessons in one course",
+    progress: 0,
+    target: 1,
+    type: AchievementType.master,
+    color: Colors.deepOrange,
+  ),
+  Achievement(
+    icon: Icons.people,
+    name: "Social Learner",
+    description: "Share your progress 5 times",
+    progress: 0,
+    target: 5,
+    type: AchievementType.social,
+    color: Colors.indigo,
+  ),
+  Achievement(
+    icon: Icons.lightbulb,
+    name: "Quick Thinker",
+    description: "Answer 20 questions correctly",
+    progress: 0,
+    target: 20,
+    type: AchievementType.speed,
+    color: Colors.cyan,
+  ),
+  Achievement(
+    icon: Icons.rocket_launch,
+    name: "Fast Starter",
+    description: "Complete first lesson in under 5 minutes",
+    progress: 0,
+    target: 1,
+    type: AchievementType.speed,
+    color: Colors.pink,
+  ),
+  Achievement(
+    icon: Icons.done_all,
+    name: "Completionist",
+    description: "Finish all available courses",
+    progress: 0,
+    target: 4,
+    type: AchievementType.courseCompletion,
+    color: Colors.deepPurple,
+  ),
+  Achievement(
+    icon: Icons.celebration,
+    name: "Perfect Week",
+    description: "Learn every day for 7 days",
+    progress: 0,
+    target: 7,
+    type: AchievementType.streak,
+    color: Colors.orange,
+  ),
 ];
