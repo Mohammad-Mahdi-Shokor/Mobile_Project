@@ -200,24 +200,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       context: context,
       builder:
           (_) => AlertDialog(
-            title: const Text('Delete Account'),
+            title: const Text(
+              'Delete Account',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             content: const Text(
               'This action is permanent and cannot be undone.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _deleteAccount();
-                },
-                child: const Text(
-                  'Delete',
-                  style: TextStyle(color: Colors.red),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _deleteAccount();
+                    },
+                    child: const Text(
+                      'Delete',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
