@@ -32,7 +32,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   late Widget currentScreen;
 
   // for profile screen :
-  List<Achievement> _achievements = [];
   @override
   void initState() {
     super.initState();
@@ -73,30 +72,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   List<String> MenuItems = ["Chats", "Groups", "Communities"];
-  Widget _navItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(
-        top: isSelected ? 5 : 10,
-        bottom: isSelected ? 10 : 0,
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 30, color: Colors.white),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Drawer _buildDrawer() {
     final theme = Theme.of(context);

@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
@@ -112,10 +111,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   }
 
   // Add a method to reload scores when needed
-  Future<void> _reloadScores() async {
-    await _loadScores();
-    setState(() {});
-  }
 
   // Helper method to find lessons
   List<Lesson> _findCourseLessons(String courseTitle) {

@@ -246,57 +246,6 @@ class _TestScreenState extends State<TestScreen> {
     return 'Keep Practicing! 💪';
   }
 
-  Widget _buildScoreEmoji(int score) {
-    if (score >= 80) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.emoji_events, color: Colors.amber, size: 40),
-          const SizedBox(width: 10),
-          Text(
-            'Excellent!',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.green[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      );
-    } else if (score >= 60) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.thumb_up, color: Colors.green, size: 40),
-          const SizedBox(width: 10),
-          Text(
-            'Good Job!',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.blue[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      );
-    } else {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.refresh, color: Colors.orange, size: 20),
-          const SizedBox(width: 10),
-          Text(
-            'Keep Practicing',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.orange[700],
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

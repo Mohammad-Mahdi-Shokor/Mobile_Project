@@ -26,7 +26,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? _currentUser;
   bool _isLoading = true;
   List<Achievement> _achievements = [];
-  int _completedAchievements = 0;
   Map<String, bool> get achievementCompletionMap {
     return {for (var a in _achievements) a.name: a.isCompleted};
   }
@@ -370,23 +369,6 @@ Keep learning with me! 💪
                   ],
                 ),
               ),
-
-              // Show "View More" text if there are more than 6 achievements
-              if (_achievements.length > 6)
-                Padding(
-                  padding: EdgeInsets.only(top: screenHeight * 0.012),
-                  child: Text(
-                    '+ ${_achievements.length - 6} more achievements',
-                    style: GoogleFonts.poppins(
-                      fontSize:
-                          isSmallScreen
-                              ? screenWidth * 0.032
-                              : screenWidth * 0.03,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ),
 
               SizedBox(height: screenHeight * 0.03),
               SizedBox(height: screenHeight * 0.02),

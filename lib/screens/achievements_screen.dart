@@ -498,14 +498,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                         padding: const EdgeInsets.only(bottom: 16),
                         child: _buildAchievementCard(achievement),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final statsService = UserStatsService();
-          final shareCount = await statsService.getShareCount();
+          await statsService.getShareCount();
 
           final shareText = '''
 🏆 My Achievements Progress 🏆
