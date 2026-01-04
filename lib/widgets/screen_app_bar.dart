@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mobile_project/models/data.dart';
-import 'package:mobile_project/screens/user_profile_screen.dart';
+import 'package:mobile_project/screens/register_screen.dart';
 
 AppBar ScreenAppBar(
   BuildContext context,

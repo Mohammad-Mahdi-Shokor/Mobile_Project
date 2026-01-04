@@ -1,27 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/widgets/circular_indicator.dart';
 import 'package:mobile_project/screens/course_info_screen.dart';
 import 'package:mobile_project/models/data.dart';
 import '../services/database_helper.dart';
 
 class LearningScreen extends StatefulWidget {
   const LearningScreen({super.key});
-
-  IconData _getCourseIcon(String courseTitle) {
-    switch (courseTitle.toLowerCase()) {
-      case 'cybersecurity':
-        return Icons.security;
-      case 'mobile development':
-        return Icons.phone_android;
-      case 'physics':
-        return Icons.science;
-      case 'philosophy':
-        return Icons.psychology;
-      default:
-        return Icons.school;
-    }
-  }
 
   @override
   State<LearningScreen> createState() => _LearningScreenState();
@@ -32,6 +16,7 @@ class _LearningScreenState extends State<LearningScreen> {
   bool _isLoading = true;
   final DatabaseService _databaseService = DatabaseService();
   final Map<String, int> _courseProgress = {};
+
   @override
   void initState() {
     super.initState();
@@ -63,7 +48,6 @@ class _LearningScreenState extends State<LearningScreen> {
     return _courseProgress[courseTitle] ?? 0;
   }
 
-  // Get total lessons for a course (from sample data)
   int _getTotalLessons(String courseTitle) {
     try {
       final courseIndex = registeredCoursesWithProgress.indexWhere(
@@ -77,7 +61,6 @@ class _LearningScreenState extends State<LearningScreen> {
       print("Error getting total lessons: $e");
     }
 
-    // Fallback to sections count if lessons not found
     final course = registeredCoursesWithProgress.firstWhere(
       (course) => course.title == courseTitle,
       orElse: () => registeredCoursesWithProgress.first,
@@ -86,21 +69,40 @@ class _LearningScreenState extends State<LearningScreen> {
     return course.sections.length;
   }
 
+  IconData _getCourseIcon(String courseTitle) {
+    switch (courseTitle.toLowerCase()) {
+      case 'cybersecurity':
+        return Icons.security;
+      case 'mobile development':
+        return Icons.phone_android;
+      case 'physics':
+        return Icons.science;
+      case 'philosophy':
+        return Icons.psychology;
+      default:
+        return Icons.school;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return _isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator())
         : Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04,
+            vertical: 8,
+          ),
           child: GridView.builder(
             itemCount: registeredCoursesWithProgress.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: 10,    // Reduced from 12
-              crossAxisSpacing: 10,   // Reduced from 12
-              childAspectRatio: 0.9,  // Slightly taller
+              mainAxisSpacing: screenWidth * 0.03,
+              crossAxisSpacing: screenWidth * 0.03,
+              childAspectRatio: 0.9, // Slightly taller for single line text
             ),
             itemBuilder: (context, index) {
               final isDark = theme.brightness == Brightness.dark;
@@ -120,90 +122,72 @@ class _LearningScreenState extends State<LearningScreen> {
                     ),
                   ).then((_) => _loadRegisteredCourses());
                 },
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  margin: const EdgeInsets.all(0),
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(screenWidth * 0.04),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow:
-                        isDark
-                            ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                            : [
-                              BoxShadow(
-                                color: const Color(
-                                  0xFF1F1F39,
-                                ).withOpacity(0.08),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: theme.colorScheme.outline.withOpacity(
                         isDark ? 0.1 : 0.15,
                       ),
                       width: 1,
                     ),
+                    boxShadow:
+                        isDark
+                            ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                            : [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Course icon/title row
+                      // Course icon and title - single line
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(10),
+                            padding: EdgeInsets.all(screenWidth * 0.025),
                             decoration: BoxDecoration(
                               color: const Color(0xFF3D5CFF).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: Icon(
-                              widget._getCourseIcon(sampleCourse.title),
+                              _getCourseIcon(sampleCourse.title),
                               color: const Color(0xFF3D5CFF),
-                              size: 24,
+                              size: screenWidth * 0.05,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: screenWidth * 0.02),
                           Expanded(
-                            child: Text(
-                              sampleCourse.title,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: theme.colorScheme.onSurface,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                sampleCourse.title,
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 12),
-
-                      // Description
-                      Text(
-                        sampleCourse.description,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: theme.colorScheme.onSurface.withOpacity(
-                            isDark ? 0.7 : 0.6,
-                          ),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Progress bar or register button
+                      // Progress or Start button
                       if (isRegistered)
                         Column(
                           children: [
@@ -213,16 +197,16 @@ class _LearningScreenState extends State<LearningScreen> {
                                   .withOpacity(0.2),
                               color: const Color(0xFF3D5CFF),
                               borderRadius: BorderRadius.circular(4),
-                              minHeight: 6,
+                              minHeight: screenWidth * 0.01,
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: screenWidth * 0.015),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  '$lessonsFinished/$totalLessons lessons',
+                                  '$lessonsFinished/$totalLessons',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 11,
+                                    fontSize: screenWidth * 0.032,
                                     color: theme.colorScheme.onSurface
                                         .withOpacity(0.6),
                                   ),
@@ -230,7 +214,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 Text(
                                   '${(progress * 100).toInt()}%',
                                   style: GoogleFonts.poppins(
-                                    fontSize: 12,
+                                    fontSize: screenWidth * 0.032,
                                     fontWeight: FontWeight.w600,
                                     color: const Color(0xFF3D5CFF),
                                   ),
@@ -242,39 +226,30 @@ class _LearningScreenState extends State<LearningScreen> {
                       else
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.03,
+                            vertical: screenWidth * 0.02,
                           ),
                           decoration: BoxDecoration(
                             color:
                                 isDark
                                     ? const Color(0xFF18193C)
                                     : const Color(0xFFE6F2FF),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: const Color(0xFF3D5CFF).withOpacity(0.2),
                               width: 1,
                             ),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Start Learning',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  color: const Color(0xFF3D5CFF),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Icon(
-                                Icons.arrow_forward,
-                                size: 14,
+                          child: Center(
+                            child: Text(
+                              'Start',
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.038,
                                 color: const Color(0xFF3D5CFF),
+                                fontWeight: FontWeight.w600,
                               ),
-                            ],
+                            ),
                           ),
                         ),
                     ],
