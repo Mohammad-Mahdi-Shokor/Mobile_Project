@@ -5,17 +5,19 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mobile_project/services/database_helper.dart';
 
 import '../models/data.dart';
+import '../services/scores_repo.dart';
 import '../services/user_preferences_services.dart';
 import '../navigation_screen.dart';
+import '../services/user_stats_service.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final bool isEditing;
-  final VoidCallback onToggleTheme; // ← Remove ? (non-nullable)
+  final VoidCallback onToggleTheme;
 
   const UserProfileScreen({
     super.key,
     this.isEditing = false,
-    required this.onToggleTheme, // ← Add required
+    required this.onToggleTheme,
   });
 
   @override
@@ -125,7 +127,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
 
     if (widget.isEditing) {
-      Navigator.pop(context, user); // ← Return the updated user
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (ctx) {
+            return NavigationScreen(
+              onToggleTheme: widget.onToggleTheme,
+              selectedIndex: 1,
+            );
+          },
+        ),
+      );
     } else {
       await _userService.setFirstLaunchCompleted();
       Navigator.pushReplacement(
@@ -142,7 +154,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     // 1. Clear SharedPreferences (user profile)
     await _userService.clearAllData();
-
+    final service = UserStatsService();
+    await service.resetAllProgress();
+    await ScoresRepository.clearScores();
     // 2. Clear SQLite database (course progress)
     try {
       final DatabaseService dbService = DatabaseService();
@@ -274,6 +288,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         title: Text(
           widget.isEditing ? 'Edit Profile' : 'Complete Profile',
           style: GoogleFonts.poppins(),
+        ),
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (ctx) {
+                  return NavigationScreen(
+                    onToggleTheme: widget.onToggleTheme,
+                    selectedIndex: 1,
+                  );
+                },
+              ),
+            );
+          },
+          icon: Icon(Icons.arrow_back),
         ),
       ),
       body:

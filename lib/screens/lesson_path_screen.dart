@@ -117,7 +117,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     setState(() {});
   }
 
-
   // Helper method to find lessons
   List<Lesson> _findCourseLessons(String courseTitle) {
     try {
@@ -360,7 +359,9 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     if (_isLoading) {
       // REMOVE: || scores == null
       return Scaffold(
-        appBar: AppBar(title: Text(widget.course.title)),
+        appBar: AppBar(
+          title: Text(widget.course.title, style: TextStyle(fontSize: 15)),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -371,9 +372,14 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.course.title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        title: FittedBox(
+          child: Text(
+            widget.course.title,
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              fontSize: 20,
+            ),
+          ),
         ),
         backgroundColor: const Color(0xFF3D5CFF),
         foregroundColor: Colors.white,
@@ -401,13 +407,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
               ),
             ),
           ),
-          // Optional: Add refresh button for debugging
-          if (kDebugMode)
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: _reloadScores,
-              tooltip: 'Refresh scores',
-            ),
+          // // Optional: Add refresh button for debugging
+          // if (kDebugMode)
+          //   IconButton(
+          //     icon: Icon(Icons.refresh),
+          //     onPressed: _reloadScores,
+          //     tooltip: 'Refresh scores',
+          //   ),
         ],
       ),
       body: SingleChildScrollView(
@@ -518,114 +524,116 @@ class _CourseNodeState extends State<CourseNode> {
           transform:
               Matrix4.identity()
                 ..scale(hovering && !widget.locked ? 1.15 : 1.0),
-          child: MouseRegion(
-            onEnter: (_) => setState(() => hovering = true),
-            onExit: (_) => setState(() => hovering = false),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                // Outer glow for unlocked nodes
-                if (!widget.locked && hovering)
-                  Container(
-                    width: nodeSize + 12,
-                    height: nodeSize + 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: nodeColor.withOpacity(0.2),
-                    ),
-                  ),
-
-                // Main node
+          //hovering is only in web version , disabled cause mobile
+          // child: MouseRegion(
+          //   onEnter: (_) => setState(() => hovering = true),
+          //   onExit: (_) => setState(() => hovering = false),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer glow for unlocked nodes
+              if (!widget.locked && hovering)
                 Container(
-                  width: nodeSize,
-                  height: nodeSize,
+                  width: nodeSize + 12,
+                  height: nodeSize + 12,
                   decoration: BoxDecoration(
-                    color: nodeColor,
                     shape: BoxShape.circle,
-                    border: Border.all(color: borderColor, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          widget.locked ? 0.1 : 0.25,
-                        ),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child:
-                        widget.locked
-                            ? Icon(Icons.lock, color: textColor, size: 24)
-                            : Text(
-                              widget.index.toString(),
-                              style: GoogleFonts.poppins(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                    color: nodeColor.withOpacity(0.2),
                   ),
                 ),
 
-                // Completion checkmark
-                if (widget.isCompleted && !widget.locked)
-                  Positioned(
-                    top: 2,
-                    right: 2,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        border: Border.all(color: Colors.green, width: 1.5),
+              // Main node
+              Container(
+                padding: EdgeInsets.all(10),
+                width: nodeSize,
+                height: nodeSize,
+                decoration: BoxDecoration(
+                  color: nodeColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: borderColor, width: 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(
+                        widget.locked ? 0.1 : 0.25,
                       ),
-                      child: const Icon(
-                        Icons.check,
-                        size: 12,
-                        color: Colors.green,
-                      ),
+                      blurRadius: 6,
+                      offset: const Offset(0, 4),
                     ),
-                  ),
-
-                // Score badge
-                if (!widget.locked && widget.percentage > 0)
-                  Positioned(
-                    bottom: -4,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            widget.percentage < 50
-                                ? Colors.red
-                                : widget.percentage < 80
-                                ? Colors.orange
-                                : Colors.green,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 4,
+                  ],
+                ),
+                child: Center(
+                  child:
+                      widget.locked
+                          ? Icon(Icons.lock, color: textColor, size: 24)
+                          : Text(
+                            widget.index.toString(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        ],
-                      ),
-                      child: Text(
-                        '${widget.percentage}%',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              // Completion checkmark
+              if (widget.isCompleted && !widget.locked)
+                Positioned(
+                  top: 2,
+                  right: 2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(color: Colors.green, width: 1.5),
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+
+              // Score badge
+              if (!widget.locked && widget.percentage > 0)
+                Positioned(
+                  bottom: -4,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          widget.percentage < 50
+                              ? Colors.red
+                              : widget.percentage < 80
+                              ? Colors.orange
+                              : Colors.green,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
                         ),
+                      ],
+                    ),
+                    child: Text(
+                      '${widget.percentage}%',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
         ),
+        // ),
         const SizedBox(height: 8),
         SizedBox(
           width: 100,

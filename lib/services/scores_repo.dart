@@ -156,6 +156,25 @@ class ScoresRepository {
     await _updateScore(courseIndex, lessonIndex, 0);
   }
 
+  static Future<void> resetCourseScores(int courseIndex) async {
+    final List<List<int>>? currentScores = await getScores();
+
+    if (currentScores == null || courseIndex >= currentScores.length) {
+      return;
+    }
+
+    final List<List<int>> updatedScores = List.from(currentScores);
+
+    // Reset all scores in this course to 0
+    updatedScores[courseIndex] = List.filled(
+      currentScores[courseIndex].length,
+      0,
+    );
+
+    await saveScores(updatedScores);
+    print('Reset all scores for course $courseIndex');
+  }
+
   // Delete score for specific course and lesson (sets to 0)
   static Future<void> deleteScore(int courseIndex, int lessonIndex) async {
     await resetScore(courseIndex, lessonIndex);

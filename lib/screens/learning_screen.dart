@@ -16,13 +16,21 @@ class _LearningScreenState extends State<LearningScreen> {
   bool _isLoading = true;
   final DatabaseService _databaseService = DatabaseService();
   final Map<String, int> _courseProgress = {};
-
+  int totalAvaialableCourses = registeredCoursesWithProgress.length;
   @override
   void initState() {
     super.initState();
     _loadRegisteredCourses();
   }
 
+  List<String> comingSoonCourseTitles = [
+    'Artificial Intelligence',
+    'Web Development',
+    'Data Science',
+    'Digital Marketing',
+    'Graphic Design',
+    'Business Management',
+  ];
   Future<void> _loadRegisteredCourses() async {
     setState(() => _isLoading = true);
     try {
@@ -79,6 +87,18 @@ class _LearningScreenState extends State<LearningScreen> {
         return Icons.science;
       case 'philosophy':
         return Icons.psychology;
+      case 'artificial intelligence':
+        return Icons.smart_toy;
+      case 'web development':
+        return Icons.code;
+      case 'data science':
+        return Icons.analytics;
+      case 'digital marketing':
+        return Icons.trending_up;
+      case 'graphic design':
+        return Icons.palette;
+      case 'business management':
+        return Icons.business;
       default:
         return Icons.school;
     }
@@ -98,165 +118,278 @@ class _LearningScreenState extends State<LearningScreen> {
           ),
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
-            itemCount: registeredCoursesWithProgress.length,
+            itemCount:
+                registeredCoursesWithProgress.length +
+                comingSoonCourseTitles.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: screenWidth * 0.03,
               crossAxisSpacing: screenWidth * 0.03,
-              childAspectRatio: 0.9, // Slightly taller for single line text
+              childAspectRatio: 1.03, // Slightly taller for single line text
             ),
             itemBuilder: (context, index) {
+              bool isAvailable = index < totalAvaialableCourses;
               final isDark = theme.brightness == Brightness.dark;
-              final sampleCourse = registeredCoursesWithProgress[index];
-              final isRegistered = _isCourseRegistered(sampleCourse.title);
-              final lessonsFinished = _getLessonsFinished(sampleCourse.title);
-              final totalLessons = _getTotalLessons(sampleCourse.title);
-              final progress =
-                  totalLessons > 0 ? lessonsFinished / totalLessons : 0.0;
 
-              return InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CourseInfoScreen(course: sampleCourse),
-                    ),
-                  ).then((_) => _loadRegisteredCourses());
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: EdgeInsets.all(screenWidth * 0.04),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.surface,
+              final sampleCourse;
+              sampleCourse =
+                  isAvailable ? registeredCoursesWithProgress[index] : null;
+
+              final isRegistered =
+                  isAvailable ? _isCourseRegistered(sampleCourse.title) : null;
+              final lessonsFinished =
+                  isAvailable ? _getLessonsFinished(sampleCourse.title) : null;
+              final totalLessons =
+                  isAvailable ? _getTotalLessons(sampleCourse.title) : null;
+              final progress =
+                  isAvailable
+                      ? (totalLessons! > 0
+                          ? lessonsFinished! / totalLessons
+                          : 0.0)
+                      : null;
+
+              final comingSoonCourseTitle =
+                  isAvailable
+                      ? null
+                      : comingSoonCourseTitles[index -
+                          registeredCoursesWithProgress.length];
+
+              return index < registeredCoursesWithProgress.length
+                  ? InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => CourseInfoScreen(course: sampleCourse!),
+                        ),
+                      ).then((_) => _loadRegisteredCourses());
+                    },
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: theme.colorScheme.outline.withOpacity(
-                        isDark ? 0.1 : 0.15,
+                    child: Container(
+                      padding: EdgeInsets.all(screenWidth * 0.04),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withOpacity(
+                            isDark ? 0.1 : 0.15,
+                          ),
+                          width: 1,
+                        ),
+                        boxShadow:
+                            isDark
+                                ? [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                                : [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                       ),
-                      width: 1,
-                    ),
-                    boxShadow:
-                        isDark
-                            ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.2),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Course icon and title - single line
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(screenWidth * 0.025),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF3D5CFF,
+                                  ).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  _getCourseIcon(sampleCourse.title),
+                                  color: const Color(0xFF3D5CFF),
+                                  size: screenWidth * 0.05,
+                                ),
                               ),
-                            ]
-                            : [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
+                              SizedBox(width: screenWidth * 0.02),
+                              Expanded(
+                                child: Text(
+                                  sampleCourse.title,
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.colorScheme.onSurface,
+                                    fontSize: 9.5,
+                                  ),
+                                  softWrap: true,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                             ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Course icon and title - single line
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(screenWidth * 0.025),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF3D5CFF).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Icon(
-                              _getCourseIcon(sampleCourse.title),
-                              color: const Color(0xFF3D5CFF),
-                              size: screenWidth * 0.05,
-                            ),
                           ),
-                          SizedBox(width: screenWidth * 0.02),
-                          Expanded(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                sampleCourse.title,
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
+
+                          // Progress or Start button
+                          if (isRegistered!)
+                            Column(
+                              children: [
+                                LinearProgressIndicator(
+                                  value: progress,
+                                  backgroundColor: theme.colorScheme.outline
+                                      .withOpacity(0.2),
+                                  color: const Color(0xFF3D5CFF),
+                                  borderRadius: BorderRadius.circular(4),
+                                  minHeight: screenWidth * 0.01,
+                                ),
+                                SizedBox(height: screenWidth * 0.015),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      '$lessonsFinished/$totalLessons',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: screenWidth * 0.032,
+                                        color: theme.colorScheme.onSurface
+                                            .withOpacity(0.6),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${(progress! * 100).toInt()}%',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: screenWidth * 0.032,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF3D5CFF),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            )
+                          else
+                            Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: screenWidth * 0.03,
+                                vertical: screenWidth * 0.02,
+                              ),
+                              decoration: BoxDecoration(
+                                color:
+                                    isDark
+                                        ? const Color(0xFF18193C)
+                                        : const Color(0xFFE6F2FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(
+                                    0xFF3D5CFF,
+                                  ).withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  'Start',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.038,
+                                    color: const Color(0xFF3D5CFF),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
                         ],
                       ),
-
-                      // Progress or Start button
-                      if (isRegistered)
-                        Column(
-                          children: [
-                            LinearProgressIndicator(
-                              value: progress,
-                              backgroundColor: theme.colorScheme.outline
-                                  .withOpacity(0.2),
-                              color: const Color(0xFF3D5CFF),
-                              borderRadius: BorderRadius.circular(4),
-                              minHeight: screenWidth * 0.01,
-                            ),
-                            SizedBox(height: screenWidth * 0.015),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '$lessonsFinished/$totalLessons',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: screenWidth * 0.032,
-                                    color: theme.colorScheme.onSurface
-                                        .withOpacity(0.6),
+                    ),
+                  )
+                  : InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: EdgeInsets.all(screenWidth * 0.04),
+                      decoration: BoxDecoration(
+                        color:
+                            isDark
+                                ? Colors.orange.withOpacity(0.1)
+                                : Colors.orange.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withOpacity(
+                            isDark ? 0.1 : 0.15,
+                          ),
+                          width: 1,
+                        ),
+                        boxShadow:
+                            isDark
+                                ? [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
                                   ),
+                                ]
+                                : [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Course icon and title - single line
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(screenWidth * 0.025),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF3D5CFF,
+                                  ).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                Text(
-                                  '${(progress * 100).toInt()}%',
+                                child: Icon(
+                                  _getCourseIcon(comingSoonCourseTitle!),
+                                  color: const Color(0xFF3D5CFF),
+                                  size: screenWidth * 0.05,
+                                ),
+                              ),
+                              SizedBox(width: screenWidth * 0.02),
+                              Expanded(
+                                child: Text(
+                                  comingSoonCourseTitle,
                                   style: GoogleFonts.poppins(
-                                    fontSize: screenWidth * 0.032,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF3D5CFF),
+                                    color: theme.colorScheme.onSurface,
+                                    fontSize: 9.5,
                                   ),
+                                  softWrap: true,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ],
-                            ),
-                          ],
-                        )
-                      else
-                        Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.03,
-                            vertical: screenWidth * 0.02,
+                              ),
+                            ],
                           ),
-                          decoration: BoxDecoration(
-                            color:
-                                isDark
-                                    ? const Color(0xFF18193C)
-                                    : const Color(0xFFE6F2FF),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: const Color(0xFF3D5CFF).withOpacity(0.2),
-                              width: 1,
-                            ),
-                          ),
-                          child: Center(
+
+                          Center(
                             child: Text(
-                              'Start',
+                              'Coming Soon',
                               style: GoogleFonts.poppins(
                                 fontSize: screenWidth * 0.038,
-                                color: const Color(0xFF3D5CFF),
+                                color: Color(0xFF5D6CFF),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
+                          SizedBox(height: 1),
+                        ],
+                      ),
+                    ),
+                  );
             },
           ),
         );

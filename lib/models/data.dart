@@ -236,7 +236,7 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     description:
         "Learn the fundamentals of protecting systems, networks, and data.",
     numberOfFinishedLessons: 0, // Just started
-    totalLessons: 7,
+    totalLessons: allCourseLessons[0].length,
     about:
         "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
     imageUrl: "https://cdn-icons-png.freepik.com/512/8460/8460433.png",
@@ -255,8 +255,8 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     title: "Mobile Development",
     description:
         "Build modern mobile applications using cross-platform technologies.",
-    numberOfFinishedLessons: 2, // In progress
-    totalLessons: 4,
+    numberOfFinishedLessons: 0, // In progress
+    totalLessons: allCourseLessons[1].length,
     about:
         "Learn how to build modern, beautiful mobile applications using cross-platform technologies. Focus on Flutter and best practices for app development.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png",
@@ -272,8 +272,8 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     title: "Physics",
     description:
         "Understand the laws that govern matter, energy, and the universe.",
-    numberOfFinishedLessons: 4, // Almost complete
-    totalLessons: 4,
+    numberOfFinishedLessons: 0, // Almost complete
+    totalLessons: allCourseLessons[2].length,
     about:
         "This course explores the fundamental laws governing matter, energy, and motion, helping you understand how the universe works.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1467/1467187.png",
@@ -290,7 +290,7 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     description:
         "Explore fundamental questions about existence, knowledge, and ethics.",
     numberOfFinishedLessons: 0, // Not started yet
-    totalLessons: 4,
+    totalLessons: allCourseLessons[3].length,
     about:
         "Philosophy encourages critical thinking about life's deepest questions, including morality, existence, truth, and knowledge.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1995/1995574.png",
@@ -657,10 +657,7 @@ class Achievement {
   double get percentage => (progress / target).clamp(0.0, 1.0);
   bool get isCompleted => progress >= target;
 
-  Achievement copyWith({
-    double? progress,
-    bool? isUnlocked,
-  }) {
+  Achievement copyWith({double? progress, bool? isUnlocked}) {
     return Achievement(
       icon: icon,
       name: name,

@@ -26,6 +26,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? _currentUser;
   bool _isLoading = true;
   List<Achievement> _achievements = [];
+  int _completedAchievements = 0;
+  Map<String, bool> get achievementCompletionMap {
+    return {for (var a in _achievements) a.name: a.isCompleted};
+  }
 
   @override
   void initState() {
@@ -161,6 +165,13 @@ Keep learning with me! 💪
     }
   }
 
+  Map<String, bool> getAchievementCompletionMap() {
+    return {
+      for (var achievement in _achievements)
+        achievement.name: achievement.isCompleted,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -223,236 +234,140 @@ Keep learning with me! 💪
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: screenHeight * 0.01),
+              SizedBox(height: screenHeight * 0.008),
 
               // Tag/Profession
               Text(
                 displayUser.tag,
-                style: GoogleFonts.poppins(
-                  fontSize:
-                      isSmallScreen ? screenWidth * 0.04 : screenWidth * 0.045,
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: screenWidth * 0.05,
                   color: theme.colorScheme.onSurface.withOpacity(0.8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: screenHeight * 0.005),
+              SizedBox(height: screenHeight * 0.008),
 
               // Age and Gender
               Text(
                 "${displayUser.age}, ${displayUser.Gender}",
                 style: GoogleFonts.poppins(
                   fontSize:
-                      isSmallScreen ? screenWidth * 0.032 : screenWidth * 0.035,
+                      isSmallScreen ? screenWidth * 0.037 : screenWidth * 0.039,
                   color: theme.colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               SizedBox(height: screenHeight * 0.03),
 
               // Achievements section with View All button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Achievements',
-                    style: GoogleFonts.poppins(
-                      fontSize:
-                          isSmallScreen
-                              ? screenWidth * 0.055
-                              : screenWidth * 0.05,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AchievementsScreen(),
-                        ),
-                      ).then((_) {
-                        // Refresh achievements when returning
-                        _loadUserData();
-                      });
-                    },
-                    child: Row(
-                      children: [
-                        Text(
-                          'View All',
-                          style: GoogleFonts.poppins(
-                            color: const Color(0xFF3D5CFF),
-                            fontWeight: FontWeight.w600,
-                            fontSize:
-                                isSmallScreen
-                                    ? screenWidth * 0.032
-                                    : screenWidth * 0.035,
-                          ),
-                        ),
-                        SizedBox(width: screenWidth * 0.01),
-                        Icon(
-                          Icons.arrow_forward_ios,
-                          size:
-                              isSmallScreen
-                                  ? screenWidth * 0.032
-                                  : screenWidth * 0.035,
-                          color: const Color(0xFF3D5CFF),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: screenHeight * 0.015),
-
-              // Achievements preview grid (first 6 achievements)
               Container(
-                width: double.infinity,
-                constraints: BoxConstraints(
-                  maxHeight: screenHeight * 0.3,
-                  minHeight: screenHeight * 0.25,
-                ),
-                padding: EdgeInsets.all(screenWidth * 0.03),
+                padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
                   color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: theme.colorScheme.outline.withOpacity(0.2),
-                    width: 1,
                   ),
                 ),
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemCount:
-                      _achievements.length > 6 ? 6 : _achievements.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: screenWidth * 0.02,
-                    crossAxisSpacing: screenWidth * 0.02,
-                    childAspectRatio: 0.9,
-                  ),
-                  itemBuilder: (context, index) {
-                    final Achievement a = _achievements[index];
-                    final isCompleted = a.isCompleted;
-
-                    return Tooltip(
-                      message: a.description,
-                      child: Container(
-                        padding: EdgeInsets.all(screenWidth * 0.025),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color:
-                              isCompleted
-                                  ? a.color.withOpacity(0.2)
-                                  : isDark
-                                  ? theme.colorScheme.secondary.withOpacity(0.2)
-                                  : theme.colorScheme.secondary.withOpacity(
-                                    0.3,
-                                  ),
-                          border: Border.all(
-                            color:
-                                isCompleted
-                                    ? a.color.withOpacity(0.5)
-                                    : theme.colorScheme.outline.withOpacity(
-                                      0.3,
-                                    ),
-                            width: isCompleted ? 2 : 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Achievements',
+                          style: GoogleFonts.poppins(
+                            fontSize: isSmallScreen ? 18 : 20,
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
                           ),
-                          boxShadow:
-                              isCompleted
-                                  ? [
-                                    BoxShadow(
-                                      color: a.color.withOpacity(0.3),
-                                      blurRadius: 8,
-                                      spreadRadius: 1,
-                                    ),
-                                  ]
-                                  : null,
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Icon(
-                                  a.icon,
-                                  size:
-                                      isSmallScreen
-                                          ? screenWidth * 0.07
-                                          : screenWidth * 0.06,
-                                  color:
-                                      isCompleted
-                                          ? a.color
-                                          : theme.colorScheme.primary,
-                                ),
-                                if (isCompleted)
-                                  Positioned(
-                                    top: 0,
-                                    right: 0,
-                                    child: Container(
-                                      padding: EdgeInsets.all(
-                                        screenWidth * 0.008,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Colors.green,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.check,
-                                        size: screenWidth * 0.025,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(height: screenHeight * 0.008),
-                            Expanded(
-                              child: Text(
-                                a.name,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize:
-                                      isSmallScreen
-                                          ? screenWidth * 0.028
-                                          : screenWidth * 0.025,
-                                  color: theme.colorScheme.onSurface,
-                                  fontWeight:
-                                      isCompleted
-                                          ? FontWeight.w700
-                                          : FontWeight.w500,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AchievementsScreen(),
                               ),
+                            ).then((_) => _loadUserData());
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
                             ),
-                            if (isCompleted)
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  top: screenHeight * 0.004,
-                                ),
-                                child: Text(
-                                  '${(a.percentage * 100).toInt()}%',
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF3D5CFF).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  'View All',
                                   style: GoogleFonts.poppins(
-                                    fontSize:
-                                        isSmallScreen
-                                            ? screenWidth * 0.022
-                                            : screenWidth * 0.02,
-                                    color: Colors.green,
+                                    fontSize: 14,
+                                    color: const Color(0xFF3D5CFF),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                  color: Color(0xFF3D5CFF),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Achievements Grid
+                    GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount:
+                          _achievements.length > 6 ? 6 : _achievements.length,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 3,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 0.85,
+                      ),
+                      itemBuilder: (context, index) {
+                        final achievement = _achievements[index];
+                        final isCompleted =
+                            achievementCompletionMap[achievement.name] ?? false;
+
+                        return _buildAchievementPreview(
+                          achievement: achievement,
+                          isCompleted: isCompleted,
+                          context: context,
+                          isSmallScreen: isSmallScreen,
+                        );
+                      },
+                    ),
+
+                    if (_achievements.length > 6)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 16),
+                        child: Center(
+                          child: Text(
+                            '+ ${_achievements.length - 6} more achievements',
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.6,
                               ),
-                          ],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ),
                       ),
-                    );
-                  },
+                  ],
                 ),
               ),
 
@@ -513,6 +428,108 @@ Keep learning with me! 💪
               SizedBox(height: screenHeight * 0.02),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAchievementPreview({
+    required Achievement achievement,
+    required bool isCompleted,
+    required BuildContext context,
+    required bool isSmallScreen,
+  }) {
+    final theme = Theme.of(context);
+
+    return Tooltip(
+      message: achievement.description,
+      child: Container(
+        padding: EdgeInsets.all(isSmallScreen ? 8 : 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color:
+              isCompleted
+                  ? achievement.color.withOpacity(0.15)
+                  : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+          border: Border.all(
+            color:
+                isCompleted
+                    ? achievement.color.withOpacity(0.3)
+                    : theme.colorScheme.outline.withOpacity(0.2),
+            width: isCompleted ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color:
+                        isCompleted
+                            ? achievement.color.withOpacity(0.2)
+                            : Colors.grey.withOpacity(0.2),
+                  ),
+                  child: Icon(
+                    achievement.icon,
+                    size: isSmallScreen ? 20 : 24,
+                    color: isCompleted ? achievement.color : Colors.grey,
+                  ),
+                ),
+                if (isCompleted)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 1.5),
+                      ),
+                      child: const Icon(
+                        Icons.check,
+                        size: 10,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            FittedBox(
+              child: Text(
+                achievement.name,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: isSmallScreen ? 10 : 12,
+                  fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w500,
+                  color: theme.colorScheme.onSurface,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+
+            // if (isCompleted)
+            //   Padding(
+            //     padding: const EdgeInsets.only(top: 4),
+            //     child: Text(
+            //       'Completed',
+            //       style: GoogleFonts.poppins(
+            //         fontSize: 9,
+            //         color: Colors.green,
+            //         fontWeight: FontWeight.w600,
+            //       ),
+            //     ),
+            //   ),
+          ],
         ),
       ),
     );

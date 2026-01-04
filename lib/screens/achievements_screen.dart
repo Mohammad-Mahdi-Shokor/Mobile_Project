@@ -245,27 +245,29 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(12),
+                        // borderRadius: BorderRadius.circular(20),
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.check,
-                            size: 14,
-                            color: Colors.green,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Completed',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11,
-                              color: Colors.green,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                      child: Icon(Icons.check, size: 20, color: Colors.green),
+                      // Row(
+                      //   mainAxisSize: MainAxisSize.min,
+                      //   children: [
+                      //     const Icon(
+                      //       Icons.check,
+                      //       size: 20,
+                      //       color: Colors.green,
+                      //     ),
+                      //     // const SizedBox(width: 4),
+                      //     // Text(
+                      //     //   'Completed',
+                      //     //   style: GoogleFonts.poppins(
+                      //     //     fontSize: 11,
+                      //     //     color: Colors.green,
+                      //     //     fontWeight: FontWeight.w600,
+                      //     //   ),
+                      //     // ),
+                      //   ],
+                      // ),
                     ),
                 ],
               ),
@@ -366,11 +368,21 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   icon: Icons.check_circle,
                   color: Colors.green,
                 ),
+                VerticalDivider(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  thickness: 1,
+                  width: 20,
+                ),
                 _buildStatItem(
                   value: (totalCount - completedCount).toString(),
                   label: 'In Progress',
                   icon: Icons.timelapse,
                   color: Colors.orange,
+                ),
+                VerticalDivider(
+                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  thickness: 1,
+                  width: 20,
                 ),
                 _buildStatItem(
                   value: '$completionPercentage%',
@@ -413,7 +425,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         ),
         Text(
           label,
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[600]),
         ),
       ],
     );

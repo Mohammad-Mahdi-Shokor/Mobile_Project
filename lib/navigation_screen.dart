@@ -6,13 +6,19 @@ import 'package:mobile_project/screens/profile_screen.dart';
 import 'package:mobile_project/services/registered_course.dart';
 import 'package:mobile_project/widgets/screen_app_bar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
+import 'package:mobile_project/widgets/tobeimplemented.dart';
 import 'screens/course_info_screen.dart';
 import 'screens/learning_screen.dart';
 import 'services/user_preferences_services.dart';
 
 class NavigationScreen extends StatefulWidget {
-  const NavigationScreen({super.key, required this.onToggleTheme});
+  const NavigationScreen({
+    super.key,
+    required this.onToggleTheme,
+    this.selectedIndex = 0,
+  });
   final void Function() onToggleTheme;
+  final selectedIndex;
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
@@ -25,10 +31,28 @@ class _NavigationScreenState extends State<NavigationScreen> {
   late List<RegisteredCourse> registeredCourses = [];
   late Widget currentScreen;
 
+  // for profile screen :
+  List<Achievement> _achievements = [];
   @override
   void initState() {
     super.initState();
-    currentScreen = LearningScreen();
+    setState(() {
+      _selectedIndex = widget.selectedIndex;
+      if (_selectedIndex == 0) {
+        currentScreen = LearningScreen();
+      } else {
+        currentScreen = ProfileScreen(
+          key: UniqueKey(), // Add a unique key to force rebuild
+        );
+        // Refresh user data when ProfileScreen is shown
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (mounted) {
+            _loadUserData();
+          }
+        });
+      }
+    });
+
     _loadUserData();
   }
 
@@ -77,6 +101,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   Drawer _buildDrawer() {
     final theme = Theme.of(context);
     return Drawer(
+      width: MediaQuery.of(context).size.width * 0.8,
       backgroundColor: theme.drawerTheme.backgroundColor,
       child: SafeArea(
         child: Column(
@@ -160,6 +185,12 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (ctx) {
+                      return toBeImplemented(context);
+                    },
+                  );
                 },
               );
             }),
@@ -179,7 +210,11 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            SettingsScreen(onToggleTheme: widget.onToggleTheme),
+                  ),
                 );
               },
             ),
@@ -206,7 +241,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -219,22 +253,55 @@ class _NavigationScreenState extends State<NavigationScreen> {
       body: currentScreen,
       bottomNavigationBar: CurvedNavigationBar(
         index: _selectedIndex,
-        height: 60,
+        height: 65,
         backgroundColor: Colors.transparent,
         color: const Color(0xFF161632),
         buttonBackgroundColor: const Color(0xFF18193C),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 400),
+        // These control the curve shape:
+        letIndexChange: (index) => true,
+        // Use a container with clip to improve shape
         items: [
-          _navItem(
-            icon: Icons.school,
-            label: 'Learning',
-            isSelected: _selectedIndex == 0,
+          Container(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.school,
+                  color: _selectedIndex == 0 ? Colors.white : Colors.white70,
+                  size: 24,
+                ),
+                Text(
+                  'Learning',
+                  style: TextStyle(
+                    color: _selectedIndex == 0 ? Colors.white : Colors.white70,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
           ),
-          _navItem(
-            icon: Icons.person,
-            label: 'Profile',
-            isSelected: _selectedIndex == 1,
+          Container(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.person,
+                  color: _selectedIndex == 1 ? Colors.white : Colors.white70,
+                  size: 24,
+                ),
+                Text(
+                  'Profile',
+                  style: TextStyle(
+                    color: _selectedIndex == 1 ? Colors.white : Colors.white70,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
         onTap: (index) {

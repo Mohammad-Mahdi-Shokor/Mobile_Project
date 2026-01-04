@@ -1,29 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mobile_project/widgets/tobeimplemented.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({super.key, required this.onToggleTheme});
+  final void Function() onToggleTheme;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    List<String> settingsItems = [
-      "Account",
-      "Privacy",
-      "Notifications",
-      "Appearance",
-    ];
+
+    // Change 'void' to 'VoidCallback' or 'Function()'
+    Map<String, VoidCallback> settingsItems = {
+      "Account": () {
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return toBeImplemented(context);
+          },
+        );
+      },
+      "Privacy": () {
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return toBeImplemented(context);
+          },
+        );
+      },
+      "Notifications": () {
+        showDialog(
+          context: context,
+          builder: (ctx) {
+            return toBeImplemented(context);
+          },
+        );
+      },
+      "Appearance": () {
+        onToggleTheme();
+      },
+    };
+
     final itemIcon = [
       Icons.person,
       Icons.lock,
       Icons.notifications,
       Icons.dark_mode,
     ];
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       appBar: AppBar(
         backgroundColor: const Color(0xFF3D5CFF),
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           'Settings',
           style: GoogleFonts.poppins(
@@ -34,10 +63,11 @@ class SettingsScreen extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          ...settingsItems.map((item) {
+          ...settingsItems.keys.map((item) {
             return ListTile(
+              onTap: settingsItems[item], // This works now!
               leading: Icon(
-                itemIcon[settingsItems.indexOf(item)],
+                itemIcon[settingsItems.keys.toList().indexOf(item)],
                 color: theme.textTheme.bodyLarge!.color!,
               ),
               title: Text(
@@ -47,7 +77,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             );
-          }),
+          }).toList(), // Don't forget .toList()
         ],
       ),
     );

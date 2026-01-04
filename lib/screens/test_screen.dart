@@ -48,12 +48,10 @@ class _TestScreenState extends State<TestScreen> {
   }
 
   void _showTestResult(int score) async {
-    // Track achievements
     if (score == 100) {
       await _statsService.recordPerfectScore();
     }
 
-    // Increment correct answers count (only if they passed)
     if (score >= 70) {
       await _statsService.incrementCorrectAnswers();
     }
@@ -62,38 +60,190 @@ class _TestScreenState extends State<TestScreen> {
       context: context,
       barrierDismissible: false,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Test Completed'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'You scored: $score%',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Correct: $correctAnswers/${widget.questions.length}',
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 20),
-                _buildScoreEmoji(score),
-              ],
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24.0),
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  Navigator.pop(context, score); // Return with score
-                },
-                child: const Text('OK'),
+            elevation: 10,
+            shadowColor: Colors.black.withOpacity(0.3),
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            child: Container(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Score Circle
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: _getScoreGradient(score),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getScoreColor(score).withOpacity(0.3),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$score%',
+                        style: GoogleFonts.poppins(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Title
+                  Text(
+                    score >= 70 ? 'Congratulations!' : 'Test Completed',
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // score >= 100
+                  //     ? Container()
+                  //     : Container(
+                  //       padding: const EdgeInsets.symmetric(
+                  //         horizontal: 20,
+                  //         vertical: 12,
+                  //       ),
+                  //       decoration: BoxDecoration(
+                  //         color: Theme.of(
+                  //           context,
+                  //         ).colorScheme.surfaceVariant.withOpacity(0.3),
+                  //         borderRadius: BorderRadius.circular(16),
+                  //       ),
+                  //       child: Column(
+                  //         children: [
+                  //           Row(
+                  //             mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  //             children: [
+                  //               Text(
+                  //                 'Correct Answers:',
+                  //                 style: GoogleFonts.poppins(
+                  //                   fontSize: 14,
+                  //                   color: Theme.of(
+                  //                     context,
+                  //                   ).colorScheme.onSurface.withOpacity(0.7),
+                  //                 ),
+                  //               ),
+                  //               Text(
+                  //                 '$correctAnswers/${widget.questions.length}',
+                  //                 style: GoogleFonts.poppins(
+                  //                   fontSize: 16,
+                  //                   fontWeight: FontWeight.w600,
+                  //                   color: _getScoreColor(score),
+                  //                 ),
+                  //               ),
+                  //             ],
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  // score < 100 ? SizedBox(height: 10) : Container(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _getScoreIcon(score),
+                        color: _getScoreColor(score),
+                        size: 22,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        _getScoreMessage(score),
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: _getScoreColor(score),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context, score);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _getScoreColor(score),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Continue',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
     );
+  }
+
+  Color _getScoreColor(int score) {
+    if (score >= 90) return Colors.green;
+    if (score >= 80) return Colors.teal;
+    if (score >= 70) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    return Colors.red;
+  }
+
+  List<Color> _getScoreGradient(int score) {
+    if (score >= 90) return [Colors.green.shade600, Colors.green.shade400];
+    if (score >= 80) return [Colors.teal.shade600, Colors.teal.shade400];
+    if (score >= 70) return [Colors.blue.shade600, Colors.blue.shade400];
+    if (score >= 60) return [Colors.orange.shade600, Colors.orange.shade400];
+    return [Colors.red.shade600, Colors.red.shade400];
+  }
+
+  IconData _getScoreIcon(int score) {
+    if (score >= 90) return Icons.emoji_events;
+    if (score >= 80) return Icons.star;
+    if (score >= 70) return Icons.thumb_up;
+    if (score >= 60) return Icons.check_circle;
+    return Icons.refresh;
+  }
+
+  String _getScoreMessage(int score) {
+    if (score >= 95) return 'Perfect Score! 🎯';
+    if (score >= 90) return 'Outstanding! 🏆';
+    if (score >= 80) return 'Excellent Work! 🌟';
+    if (score >= 70) return 'Great Job! 👍';
+    if (score >= 60) return 'Good Effort! 👏';
+    return 'Keep Practicing! 💪';
   }
 
   Widget _buildScoreEmoji(int score) {
@@ -133,12 +283,12 @@ class _TestScreenState extends State<TestScreen> {
       return Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.refresh, color: Colors.orange, size: 40),
+          const Icon(Icons.refresh, color: Colors.orange, size: 20),
           const SizedBox(width: 10),
           Text(
             'Keep Practicing',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 14,
               color: Colors.orange[700],
               fontWeight: FontWeight.bold,
             ),
@@ -163,7 +313,6 @@ class _TestScreenState extends State<TestScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Progress indicator
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -192,7 +341,6 @@ class _TestScreenState extends State<TestScreen> {
             ),
             const SizedBox(height: 20),
 
-            // Question
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -317,7 +465,6 @@ class _TestScreenState extends State<TestScreen> {
               ),
             ),
 
-            // Next/Finish Button
             if (answered)
               Padding(
                 padding: const EdgeInsets.only(top: 20),

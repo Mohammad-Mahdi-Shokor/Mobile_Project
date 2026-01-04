@@ -4,6 +4,7 @@ import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/lesson_path_screen.dart';
 import '../services/database_helper.dart';
 import '../services/registered_course.dart';
+import '../services/scores_repo.dart';
 
 class CourseInfoScreen extends StatefulWidget {
   final RegisteredCourse course;
@@ -86,7 +87,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
 
   Future<void> _unregisterCourse() async {
     if (!_isCourseRegistered) return;
-
+    await ScoresRepository.resetCourseScores(courseIndex);
     setState(() => _isLoading = true);
 
     try {
@@ -173,6 +174,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
           _isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
