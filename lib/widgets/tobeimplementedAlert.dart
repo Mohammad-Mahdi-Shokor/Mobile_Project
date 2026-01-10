@@ -28,46 +28,6 @@ AlertDialog toBeImplemented(BuildContext context) {
     content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Text(
-        //   'This feature is under development',
-        //   style: TextStyle(
-        //     fontSize: 16,
-        //     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-        //     height: 1.4,
-        //   ),
-        //   textAlign: TextAlign.center,
-        // ),
-        // const SizedBox(height: 20),
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        //   decoration: BoxDecoration(
-        //     color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        //     borderRadius: BorderRadius.circular(12),
-        //   ),
-        //   child: Column(
-        //     children: [
-        //       Text(
-        //         'Work in Progress',
-        //         style: TextStyle(
-        //           fontSize: 14,
-        //           fontWeight: FontWeight.w600,
-        //           color: Theme.of(context).colorScheme.primary,
-        //         ),
-        //       ),
-        //       const SizedBox(height: 4),
-        //       Text(
-        //         'Stay tuned for updates',
-        //         style: TextStyle(
-        //           fontSize: 12,
-        //           color: Theme.of(
-        //             context,
-        //           ).colorScheme.onSurface.withOpacity(0.6),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-        // const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

@@ -2,12 +2,12 @@
 
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/register_screen.dart';
-import 'package:mobile_project/widgets/tobeimplemented.dart';
+import 'package:mobile_project/widgets/tobeimplementedAlert.dart';
 import 'package:provider/provider.dart';
 import 'package:mobile_project/services/profile_state.dart';
 
+import '../models/user.dart';
 import '../screens/achievements_screen.dart';
 
 AppBar ScreenAppBar(
@@ -44,7 +44,6 @@ AppBar ScreenAppBar(
                 },
               ),
             );
-            // Instantly refresh from ProfileState
             profileState.refreshUser();
           },
           child: Text("Edit", style: theme.textTheme.titleMedium!),
@@ -167,7 +166,6 @@ AppBar ScreenAppBar(
   );
 }
 
-// Helper function to handle both network and local images
 ImageProvider _getProfileImage(String imagePath) {
   if (imagePath.startsWith('http')) {
     return NetworkImage(imagePath);

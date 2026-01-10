@@ -6,7 +6,8 @@ import 'package:mobile_project/screens/profile_screen.dart';
 import 'package:mobile_project/services/registered_course.dart';
 import 'package:mobile_project/widgets/screen_app_bar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
-import 'package:mobile_project/widgets/tobeimplemented.dart';
+import 'package:mobile_project/widgets/tobeimplementedAlert.dart';
+import 'models/user.dart';
 import 'screens/course_info_screen.dart';
 import 'screens/learning_screen.dart';
 import 'services/user_preferences_services.dart';
@@ -40,10 +41,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       if (_selectedIndex == 0) {
         currentScreen = LearningScreen();
       } else {
-        currentScreen = ProfileScreen(
-          key: UniqueKey(), // Add a unique key to force rebuild
-        );
-        // Refresh user data when ProfileScreen is shown
+        currentScreen = ProfileScreen(key: UniqueKey());
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) {
             _loadUserData();
@@ -59,10 +57,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     if (_selectedIndex == 0) {
       currentScreen = LearningScreen();
     } else {
-      currentScreen = ProfileScreen(
-        key: UniqueKey(), // Add a unique key to force rebuild
-      );
-      // Refresh user data when ProfileScreen is shown
+      currentScreen = ProfileScreen(key: UniqueKey());
       Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
           _loadUserData();

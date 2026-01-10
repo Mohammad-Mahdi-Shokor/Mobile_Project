@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_project/services/database_helper.dart';
-
-import '../models/data.dart';
+import '../models/user.dart';
 import '../services/scores_repo.dart';
 import '../services/user_preferences_services.dart';
 import '../navigation_screen.dart';
@@ -151,13 +150,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Future<void> _deleteAccount() async {
     setState(() => _isLoading = true);
-
-    // 1. Clear SharedPreferences (user profile)
     await _userService.clearAllData();
     final service = UserStatsService();
     await service.resetAllProgress();
     await ScoresRepository.clearScores();
-    // 2. Clear SQLite database (course progress)
     try {
       final DatabaseService dbService = DatabaseService();
       final courses = await dbService.getCourses();
@@ -181,7 +177,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       ),
     );
 
-    // Navigate back to registration
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(

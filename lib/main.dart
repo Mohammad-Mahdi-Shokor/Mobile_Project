@@ -14,12 +14,11 @@ import 'services/scores_repo.dart';
 import 'services/user_preferences_services.dart';
 
 void main() async {
-  // Initialize sqflite for desktop platforms
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     await ScoresRepository.initializeScores(
       registeredCoursesWithProgress.length,
-      10, // Or your maximum lessons per course
+      10, // Or maximum lessons of course
     );
   });
   final statsService = UserStatsService();
@@ -103,17 +102,13 @@ class _MyAppState extends State<MyApp> {
     }
 
     if (!_hasUser || _isFirstLaunch) {
-      return UserProfileScreen(
-        isEditing: false,
-        onToggleTheme: toggleTheme, // ← REQUIRED
-      );
+      return UserProfileScreen(isEditing: false, onToggleTheme: toggleTheme);
     }
 
     return NavigationScreen(onToggleTheme: toggleTheme);
   }
 }
 
-// Add a simple splash screen
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 

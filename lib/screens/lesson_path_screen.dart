@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
+import '../models/Question.dart';
+import '../models/lesson.dart';
 import '../services/database_helper.dart';
 import '../services/registered_course.dart';
 import '../services/scores_repo.dart';
@@ -35,29 +37,24 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   final UserStatsService _statsService = UserStatsService();
 
   Future<void> _loadScores() async {
-    // Get the course index
     final int currentCourseIndex = registeredCoursesWithProgress.indexOf(
       widget.course,
     );
-    courseIndex = currentCourseIndex; // Store in class variable
+    courseIndex = currentCourseIndex;
 
-    // Initialize if needed
     await ScoresRepository.initializeScores(
       registeredCoursesWithProgress.length,
       lessons.length,
     );
 
-    // Load scores for this course
     final courseScoresList = await ScoresRepository.getCourseScores(
       currentCourseIndex,
     );
 
     setState(() {
-      // If no scores exist, initialize with zeros
       if (courseScoresList.isEmpty) {
         courseScores = List.filled(lessons.length, 0);
       } else {
-        // Ensure the list matches lesson count
         if (courseScoresList.length < lessons.length) {
           courseScores = [
             ...courseScoresList,
@@ -69,8 +66,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       }
     });
 
-    // Debug: print scores
-    await ScoresRepository.debugPrintScores();
+    // await ScoresRepository.debugPrintScores();
   }
 
   @override
@@ -79,7 +75,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     _initializeScreen();
   }
 
-  // Modified _initializeScreen to load scores after lessons are found
   Future<void> _initializeScreen() async {
     setState(() => _isLoading = true);
 
@@ -92,27 +87,14 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
     await _findDatabaseCourse();
 
-    // DON'T initialize courseScores here - let _loadScores handle it
-    // courseScores = List.generate(lessons.length, (_) => 0); // REMOVE THIS LINE
-
-    // Now load scores
     await _loadScores();
-
-    // FIX: Only unlock lessons that are truly completed
-    // If _completedLessons = 1, that means lesson 0 is completed, lesson 1 should be unlocked but not completed
     unlocked = List.generate(lessons.length, (index) {
-      // Lesson is unlocked if:
-      // 1. It's the first lesson (always)
-      // 2. The previous lesson is completed (index <= _completedLessons)
       return index == 0 || index <= _completedLessons;
     });
 
     setState(() => _isLoading = false);
   }
 
-  // Add a method to reload scores when needed
-
-  // Helper method to find lessons
   List<Lesson> _findCourseLessons(String courseTitle) {
     try {
       final courseIndex = registeredCoursesWithProgress.indexWhere(
@@ -125,8 +107,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     } catch (e) {
       print('Error finding course lessons: $e');
     }
-
-    // Create placeholder lessons from sections
     return widget.course.sections.map((section) {
       return Lesson(
         title: section,
@@ -150,7 +130,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _findDatabaseCourse() async {
     try {
       final allCourses = await _dbService.getCourses();
-      print("Found ${allCourses.length} courses in database"); // Debug
+      print("Found ${allCourses.length} courses in database");
 
       final databaseCourse = allCourses.firstWhere(
         (course) => course.title == widget.course.title,
@@ -182,10 +162,8 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
     final lesson = lessons[index];
 
-    // Track if this is the first lesson of the first registered course
     final isFirstLessonOfFirstCourse = index == 0 && _completedLessons == 0;
 
-    // Start tracking time for fast completion (only track first lesson timing)
     DateTime? startTime;
     if (isFirstLessonOfFirstCourse) {
       startTime = DateTime.now();
@@ -207,15 +185,11 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     );
 
     if (score != null && mounted) {
-      // Update score for this lesson - FIX: Use courseScores not scores
-      final updatedScores = List<int>.from(
-        courseScores,
-      ); // CHANGED: courseScores not scores
+      final updatedScores = List<int>.from(courseScores);
       if (score > updatedScores[index]) {
         updatedScores[index] = score;
       }
 
-      // CRITICAL FIX: Only unlock/save if score is passing
       final isPassingScore = score >= 70;
       final shouldUnlockNext = isPassingScore && index + 1 < lessons.length;
 
@@ -223,46 +197,34 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         courseScores = updatedScores; // CHANGED: courseScores not scores
 
         if (shouldUnlockNext) {
-          // Only unlock next lesson if passing score
           final updatedUnlocked = List<bool>.from(unlocked);
           updatedUnlocked[index + 1] = true;
           unlocked = updatedUnlocked;
         }
       });
 
-      // Also save the score to ScoresRepository
       final currentCourseIndex = registeredCoursesWithProgress.indexOf(
         widget.course,
       );
       await ScoresRepository.addScore(currentCourseIndex, index, score);
 
-      // CRITICAL FIX: Only save progress to database if passing
       if (isPassingScore) {
-        // Calculate how many lessons are completed (all up to current index)
         final newCompletedCount = index + 1;
 
-        // Only update if this increases progress
         if (newCompletedCount > _completedLessons) {
           _completedLessons = newCompletedCount;
 
-          // ========== ACHIEVEMENT TRACKING ==========
-
-          // 1. Track lesson completion
           await _statsService.recordLessonCompletion(
             widget.course.title,
             lesson.title,
           );
 
-          // 2. Check for perfect score (100%)
           if (score == 100) {
             print("Perfect score recorded!");
             await _statsService.recordPerfectScore();
           }
 
-          // 3. Track correct answers (for Quick Thinker achievement)
           if (score >= 70) {
-            // Increment correct answers count - you need to know how many questions were correct
-            // For simplicity, we'll increment by the number of questions in this lesson
             final correctCount =
                 (lesson.questions.length * (score / 100)).round();
             for (int i = 0; i < correctCount; i++) {
@@ -270,7 +232,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
             }
           }
 
-          // 4. Check for fast starter (first lesson in under 5 minutes)
           if (isFirstLessonOfFirstCourse && startTime != null) {
             final completionTime =
                 DateTime.now().difference(startTime).inMinutes;
@@ -282,17 +243,13 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
             }
           }
 
-          // 5. Check if course is now fully completed (for Master Student)
           if (newCompletedCount >= lessons.length) {
             print("Course fully completed!");
-            // This will be detected in the achievements calculation
           }
 
-          // ========== UPDATE DATABASE ==========
           await _updateCourseProgress(_completedLessons);
         }
       } else {
-        // Failed the test - show message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Score below 70%. Try again to unlock next lesson.'),
@@ -303,7 +260,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     }
   }
 
-  // Update course progress in database
   Future<void> _updateCourseProgress(int completedLessons) async {
     try {
       if (_databaseCourseId != null) {
@@ -352,7 +308,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      // REMOVE: || scores == null
       return Scaffold(
         appBar: AppBar(
           title: Text(widget.course.title, style: TextStyle(fontSize: 15)),
@@ -402,13 +357,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
               ),
             ),
           ),
-          // // Optional: Add refresh button for debugging
-          // if (kDebugMode)
-          //   IconButton(
-          //     icon: Icon(Icons.refresh),
-          //     onPressed: _reloadScores,
-          //     tooltip: 'Refresh scores',
-          //   ),
         ],
       ),
       body: SingleChildScrollView(
@@ -461,7 +409,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   }
 }
 
-// Updated CourseNode with better UI
 class CourseNode extends StatefulWidget {
   final String title;
   final int index;
@@ -492,7 +439,6 @@ class _CourseNodeState extends State<CourseNode> {
     final nodeSize = 70.0;
     final isDark = widget.theme.brightness == Brightness.dark;
 
-    // Determine node colors based on state
     Color nodeColor;
     Color borderColor;
     Color textColor = Colors.white;
@@ -502,13 +448,13 @@ class _CourseNodeState extends State<CourseNode> {
       borderColor = isDark ? Colors.grey[600]! : Colors.grey[400]!;
       textColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
     } else if (widget.isCompleted) {
-      nodeColor = const Color(0xFF4CAF50); // Green for completed
+      nodeColor = const Color(0xFF4CAF50);
       borderColor = const Color(0xFF388E3C);
     } else if (hovering) {
-      nodeColor = const Color(0xFF5C6BC0); // Hover state
+      nodeColor = const Color(0xFF5C6BC0);
       borderColor = const Color(0xFF3D5CFF);
     } else {
-      nodeColor = const Color(0xFF3D5CFF); // Primary blue
+      nodeColor = const Color(0xFF3D5CFF);
       borderColor = const Color(0xFF1E40AF);
     }
 
@@ -519,14 +465,9 @@ class _CourseNodeState extends State<CourseNode> {
           transform:
               Matrix4.identity()
                 ..scale(hovering && !widget.locked ? 1.15 : 1.0),
-          //hovering is only in web version , disabled cause mobile
-          // child: MouseRegion(
-          //   onEnter: (_) => setState(() => hovering = true),
-          //   onExit: (_) => setState(() => hovering = false),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Outer glow for unlocked nodes
               if (!widget.locked && hovering)
                 Container(
                   width: nodeSize + 12,
@@ -537,7 +478,6 @@ class _CourseNodeState extends State<CourseNode> {
                   ),
                 ),
 
-              // Main node
               Container(
                 padding: EdgeInsets.all(10),
                 width: nodeSize,
@@ -571,7 +511,6 @@ class _CourseNodeState extends State<CourseNode> {
                 ),
               ),
 
-              // Completion checkmark
               if (widget.isCompleted && !widget.locked)
                 Positioned(
                   top: 2,
@@ -591,7 +530,6 @@ class _CourseNodeState extends State<CourseNode> {
                   ),
                 ),
 
-              // Score badge
               if (!widget.locked && widget.percentage > 0)
                 Positioned(
                   bottom: -4,
@@ -667,7 +605,6 @@ class _CourseNodeState extends State<CourseNode> {
   }
 }
 
-// Updated LessonPathPainter with better curves
 class LessonPathPainter extends CustomPainter {
   final int nodeCount;
   final List<bool> unlocked;
@@ -697,7 +634,6 @@ class LessonPathPainter extends CustomPainter {
             ..strokeWidth = isSegmentUnlocked ? 3.5 : 2.5
             ..strokeCap = StrokeCap.round;
 
-      // Calculate positions
       final startX =
           i % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
       final startY = i * spacing + 35;
@@ -706,32 +642,27 @@ class LessonPathPainter extends CustomPainter {
           (i + 1) % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
       final endY = (i + 1) * spacing + 35;
 
-      // Control points for smoother curve
       final controlX1 = startX + (endX - startX) * 0.5;
       final controlY1 = startY + spacing * 0.3;
       final controlX2 = startX + (endX - startX) * 0.5;
       final controlY2 = startY + spacing * 0.7;
 
-      // Draw curved path
       final path = Path();
       path.moveTo(startX, startY);
       path.cubicTo(controlX1, controlY1, controlX2, controlY2, endX, endY);
 
       canvas.drawPath(path, paint);
 
-      // Add arrowhead for direction
       if (isSegmentUnlocked) {
         final arrowPaint =
             Paint()
               ..color = const Color(0xFF3D5CFF)
               ..style = PaintingStyle.fill;
 
-        // Calculate arrow position at 70% of the path
         final t = 0.7;
         final arrowX = _cubicBezier(startX, controlX1, controlX2, endX, t);
         final arrowY = _cubicBezier(startY, controlY1, controlY2, endY, t);
 
-        // Calculate tangent for arrow direction
         final dx = _cubicBezierDerivative(
           startX,
           controlX1,
@@ -748,7 +679,6 @@ class LessonPathPainter extends CustomPainter {
         );
         final angle = atan2(dy, dx);
 
-        // Draw arrow
         canvas.save();
         canvas.translate(arrowX, arrowY);
         canvas.rotate(angle);
@@ -765,7 +695,6 @@ class LessonPathPainter extends CustomPainter {
     }
   }
 
-  // Cubic Bézier calculation
   double _cubicBezier(double a, double b, double c, double d, double t) {
     return pow(1 - t, 3) * a +
         3 * pow(1 - t, 2) * t * b +
@@ -773,7 +702,6 @@ class LessonPathPainter extends CustomPainter {
         pow(t, 3) * d;
   }
 
-  // Cubic Bézier derivative
   double _cubicBezierDerivative(
     double a,
     double b,

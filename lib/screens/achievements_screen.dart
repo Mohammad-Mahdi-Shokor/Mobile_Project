@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/services/user_stats_service.dart';
 import 'package:share_plus/share_plus.dart';
+import '../models/achievements.dart';
+import '../models/user.dart';
 import '../services/user_preferences_services.dart';
 import '../services/database_helper.dart';
 
@@ -29,11 +31,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
 
-    // Load user and progress data
     currentUser = await _userService.getUser();
     final courses = await _dbService.getCourses();
 
-    // Calculate achievements progress based on actual data
     _achievements = await _calculateAchievementsProgress(courses);
 
     setState(() => _isLoading = false);
@@ -45,7 +45,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final achievements = List<Achievement>.from(sampleAchievements);
     final statsService = UserStatsService();
 
-    // Get stats
     final totalLessonsCompleted = courses.fold(
       0,
       (sum, course) => sum + course.lessonsFinished,
@@ -58,7 +57,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final correctAnswersCount = await statsService.getCorrectAnswersCount();
     final hasFastCompletion = await statsService.hasFastCompletion();
 
-    // Check if any course is fully completed
     bool hasMasteredCourse = courses.any((course) {
       try {
         final courseIndex = registeredCoursesWithProgress.indexWhere(
@@ -74,7 +72,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       return false;
     });
 
-    // Update achievements based on actual progress
     for (int i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       double newProgress = 0;
@@ -245,36 +242,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.2),
-                        // borderRadius: BorderRadius.circular(20),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.check, size: 20, color: Colors.green),
-                      // Row(
-                      //   mainAxisSize: MainAxisSize.min,
-                      //   children: [
-                      //     const Icon(
-                      //       Icons.check,
-                      //       size: 20,
-                      //       color: Colors.green,
-                      //     ),
-                      //     // const SizedBox(width: 4),
-                      //     // Text(
-                      //     //   'Completed',
-                      //     //   style: GoogleFonts.poppins(
-                      //     //     fontSize: 11,
-                      //     //     color: Colors.green,
-                      //     //     fontWeight: FontWeight.w600,
-                      //     //   ),
-                      //     // ),
-                      //   ],
-                      // ),
                     ),
                 ],
               ),
 
               const SizedBox(height: 12),
 
-              // Description - Fixed overflow
               Text(
                 achievement.description,
                 style: GoogleFonts.poppins(
@@ -287,7 +263,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
               const SizedBox(height: 16),
 
-              // Progress bar
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -492,7 +467,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Achievements list (using ListView instead of GridView)
                     ..._achievements.map((achievement) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16),

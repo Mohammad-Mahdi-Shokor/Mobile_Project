@@ -33,11 +33,9 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Get all registered courses from database
       final courses = await _databaseService.getCourses();
       setState(() {
         _registeredCourses = courses;
-        // Check if current course is already registered (by title)
         _isCourseRegistered = courses.any(
           (course) => course.title == widget.course.title,
         );
@@ -55,7 +53,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Use the next available index (current count)
       final newCourse = Course(
         title: widget.course.title,
         courseIndex: _registeredCourses.length,
@@ -91,7 +88,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Find the database course ID to delete
       final courseToDelete = _registeredCourses.firstWhere(
         (course) => course.title == widget.course.title,
       );
@@ -131,7 +127,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
         }
       });
     } else {
-      // Already registered, just navigate
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -360,7 +355,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
 
-                    // Already registered message
                     if (_isCourseRegistered)
                       Padding(
                         padding: const EdgeInsets.only(top: 12),

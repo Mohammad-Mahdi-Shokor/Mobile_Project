@@ -6,6 +6,8 @@ import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/achievements_screen.dart';
 import 'package:mobile_project/services/user_stats_service.dart';
 
+import '../models/achievements.dart';
+import '../models/user.dart';
 import '../services/user_preferences_services.dart';
 import '../services/database_helper.dart';
 import 'package:share_plus/share_plus.dart';
@@ -52,16 +54,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final achievements = List<Achievement>.from(sampleAchievements);
     final courses = await _dbService.getCourses();
 
-    // Calculate total lessons completed
     int totalLessonsCompleted = 0;
     for (var course in courses) {
       totalLessonsCompleted += course.lessonsFinished;
     }
 
-    // Calculate registered courses count
     int registeredCoursesCount = courses.length;
 
-    // Update achievements based on actual progress
     for (int i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
       double newProgress = 0;
@@ -88,7 +87,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ? 4
                   : registeredCoursesCount.toDouble();
           break;
-        // Add more conditions as needed
         default:
           newProgress = achievement.progress;
       }
@@ -108,7 +106,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _shareProgress() async {
     try {
-      // Get user's progress data
       final courses = await _dbService.getCourses();
       int totalLessonsCompleted = 0;
       int totalCourses = courses.length;
@@ -117,13 +114,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         totalLessonsCompleted += course.lessonsFinished;
       }
 
-      // Calculate completed achievements
       final achievements = await _calculateAchievementsProgress();
       final completedAchievements =
           achievements.where((a) => a.isCompleted).length;
       final totalAchievements = achievements.length;
 
-      // Create share message
       final shareText = '''
 🎯 My Learning Progress 📚
 
@@ -137,13 +132,10 @@ Keep learning with me! 💪
 #LearningApp #Progress #AchievementUnlocked
 ''';
 
-      // Share the progress
       await Share.share(shareText, subject: 'My Learning Progress');
 
-      // Track the share for Social Learner achievement
       await _statsService.incrementShareCount();
 
-      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -196,7 +188,6 @@ Keep learning with me! 💪
           ),
           child: Column(
             children: [
-              // Profile avatar with border
               Container(
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -220,7 +211,6 @@ Keep learning with me! 💪
               ),
               SizedBox(height: screenHeight * 0.02),
 
-              // Username
               Text(
                 displayUser.username,
                 style: GoogleFonts.poppins(
@@ -235,7 +225,6 @@ Keep learning with me! 💪
               ),
               SizedBox(height: screenHeight * 0.008),
 
-              // Tag/Profession
               Text(
                 displayUser.tag,
                 style: GoogleFonts.spaceGrotesk(
@@ -246,7 +235,6 @@ Keep learning with me! 💪
               ),
               SizedBox(height: screenHeight * 0.008),
 
-              // Age and Gender
               Text(
                 "${displayUser.age}, ${displayUser.Gender}",
                 style: GoogleFonts.poppins(
@@ -257,7 +245,6 @@ Keep learning with me! 💪
               ),
               SizedBox(height: screenHeight * 0.03),
 
-              // Achievements section with View All button
               Container(
                 padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                 decoration: BoxDecoration(
@@ -324,7 +311,6 @@ Keep learning with me! 💪
 
                     const SizedBox(height: 16),
 
-                    // Achievements Grid
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,
@@ -498,19 +484,6 @@ Keep learning with me! 💪
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
-            // if (isCompleted)
-            //   Padding(
-            //     padding: const EdgeInsets.only(top: 4),
-            //     child: Text(
-            //       'Completed',
-            //       style: GoogleFonts.poppins(
-            //         fontSize: 9,
-            //         color: Colors.green,
-            //         fontWeight: FontWeight.w600,
-            //       ),
-            //     ),
-            //   ),
           ],
         ),
       ),

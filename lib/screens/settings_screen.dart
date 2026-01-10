@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:mobile_project/widgets/tobeimplemented.dart';
+import 'package:mobile_project/widgets/tobeimplementedAlert.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key, required this.onToggleTheme});
@@ -10,7 +10,6 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Change 'void' to 'VoidCallback' or 'Function()'
     Map<String, VoidCallback> settingsItems = {
       "Account": () {
         showDialog(
@@ -77,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
               ),
             );
-          }).toList(), // Don't forget .toList()
+          }),
         ],
       ),
     );

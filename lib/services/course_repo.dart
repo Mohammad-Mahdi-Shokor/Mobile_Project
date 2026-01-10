@@ -30,9 +30,6 @@ class CourseRepository {
     );
   }
 
-  // RAW SQL OPERATIONS
-
-  // SELECT - Get all courses with raw SQL
   Future<List<Course>> getAllCourses() async {
     final db = await database;
     final List<Map<String, dynamic>> results = await db.rawQuery(
@@ -42,7 +39,6 @@ class CourseRepository {
     return results.map((map) => Course.fromMap(map)).toList();
   }
 
-  // SELECT - Get specific course by ID
   Future<Course?> getCourseById(int id) async {
     final db = await database;
     final List<Map<String, dynamic>> results = await db.rawQuery(
@@ -56,7 +52,6 @@ class CourseRepository {
     return null;
   }
 
-  // SELECT - Get courses with WHERE clause
   Future<List<Course>> getCoursesByIndex(int index) async {
     final db = await database;
     final List<Map<String, dynamic>> results = await db.rawQuery(
@@ -67,7 +62,6 @@ class CourseRepository {
     return results.map((map) => Course.fromMap(map)).toList();
   }
 
-  // SELECT - Search courses by title
   Future<List<Course>> searchCourses(String keyword) async {
     final db = await database;
     final List<Map<String, dynamic>> results = await db.rawQuery(
@@ -78,7 +72,6 @@ class CourseRepository {
     return results.map((map) => Course.fromMap(map)).toList();
   }
 
-  // INSERT - Add new course with raw SQL
   Future<int> addCourse(String title, int index) async {
     final db = await database;
     final result = await db.rawInsert(
@@ -88,7 +81,6 @@ class CourseRepository {
     return result;
   }
 
-  // UPDATE - Update course with raw SQL
   Future<int> updateCourse(Course course) async {
     final db = await database;
     final result = await db.rawUpdate(
@@ -98,7 +90,6 @@ class CourseRepository {
     return result;
   }
 
-  // UPDATE - Update only title
   Future<int> updateCourseTitle(int id, String newTitle) async {
     final db = await database;
     final result = await db.rawUpdate(
@@ -108,7 +99,6 @@ class CourseRepository {
     return result;
   }
 
-  // UPDATE - Update only index
   Future<int> updateCourseIndex(int id, int newIndex) async {
     final db = await database;
     final result = await db.rawUpdate(
@@ -118,7 +108,6 @@ class CourseRepository {
     return result;
   }
 
-  // DELETE - Remove course by ID with raw SQL
   Future<int> removeCourse(int id) async {
     final db = await database;
     final result = await db.rawDelete(
@@ -128,14 +117,12 @@ class CourseRepository {
     return result;
   }
 
-  // DELETE - Remove all courses
   Future<int> removeAllCourses() async {
     final db = await database;
     final result = await db.rawDelete('DELETE FROM registeredcourses');
     return result;
   }
 
-  // DELETE - Remove courses by index
   Future<int> removeCoursesByIndex(int index) async {
     final db = await database;
     final result = await db.rawDelete(
@@ -145,7 +132,6 @@ class CourseRepository {
     return result;
   }
 
-  // TRANSACTION EXAMPLE - Reorder courses with transaction
   Future<void> reorderCourses(List<Course> courses) async {
     final db = await database;
 
@@ -159,7 +145,6 @@ class CourseRepository {
     });
   }
 
-  // COMPLEX QUERY - Get course count and average index
   Future<Map<String, dynamic>> getCourseStats() async {
     final db = await database;
     final countResult = await db.rawQuery(
@@ -174,15 +159,4 @@ class CourseRepository {
       'average_index': avgResult.first['average'] ?? 0,
     };
   }
-
-  // JOIN EXAMPLE (if you had another table)
-  // Future<List<Map<String, dynamic>>> getCoursesWithDetails() async {
-  //   final db = await database;
-  //   return await db.rawQuery('''
-  //     SELECT c.*, d.description
-  //     FROM registeredcourses c
-  //     LEFT JOIN course_details d ON c.id = d.course_id
-  //     ORDER BY c.course_index ASC
-  //   ''');
-  // }
 }

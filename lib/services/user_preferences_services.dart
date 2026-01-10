@@ -1,7 +1,7 @@
 // services/user_preferences_service.dart
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import '../models/data.dart';
+import '../models/user.dart';
 
 class UserPreferencesService {
   // Singleton pattern

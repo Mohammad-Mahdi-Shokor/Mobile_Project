@@ -24,6 +24,7 @@ class _LearningScreenState extends State<LearningScreen> {
   }
 
   List<String> comingSoonCourseTitles = [
+    // coming soon courses
     'Artificial Intelligence',
     'Web Development',
     'Data Science',
@@ -125,7 +126,7 @@ class _LearningScreenState extends State<LearningScreen> {
               crossAxisCount: 2,
               mainAxisSpacing: screenWidth * 0.03,
               crossAxisSpacing: screenWidth * 0.03,
-              childAspectRatio: 1.03, // Slightly taller for single line text
+              childAspectRatio: 1.03,
             ),
             itemBuilder: (context, index) {
               bool isAvailable = index < totalAvaialableCourses;
@@ -198,7 +199,6 @@ class _LearningScreenState extends State<LearningScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Course icon and title - single line
                           Row(
                             children: [
                               Container(
@@ -232,7 +232,6 @@ class _LearningScreenState extends State<LearningScreen> {
                             ],
                           ),
 
-                          // Progress or Start button
                           if (isRegistered!)
                             Column(
                               children: [
@@ -341,7 +340,6 @@ class _LearningScreenState extends State<LearningScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Course icon and title - single line
                           Row(
                             children: [
                               Container(
