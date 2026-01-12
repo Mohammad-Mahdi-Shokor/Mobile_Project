@@ -2,13 +2,12 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class DatabaseService {
-  // Singleton instance
   static final DatabaseService _instance = DatabaseService._internal();
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
   static Database? _database;
-  static const int _databaseVersion = 2; // Incremented version for migration
+  static const int _databaseVersion = 2;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -39,7 +38,6 @@ class DatabaseService {
     ''');
   }
 
-  // Database migration from version 1 to 2
   Future<void> _upgradeDatabase(
     Database db,
     int oldVersion,
@@ -52,7 +50,6 @@ class DatabaseService {
     }
   }
 
-  // CRUD Operations with lessons_finished
   Future<int> insertCourse(Course course) async {
     Database db = await database;
     return await db.insert('registeredcourses', course.toMap());
@@ -78,7 +75,6 @@ class DatabaseService {
     );
   }
 
-  // NEW: Update just the lessons_finished count
   Future<int> updateLessonsFinished(int id, int lessonsFinished) async {
     Database db = await database;
     return await db.update(
@@ -89,11 +85,9 @@ class DatabaseService {
     );
   }
 
-  // NEW: Increment lessons_finished by 1
   Future<int> incrementLessonsFinished(int id) async {
     Database db = await database;
 
-    // Get current value
     final result = await db.query(
       'registeredcourses',
       columns: ['lessons_finished'],
@@ -113,7 +107,6 @@ class DatabaseService {
     return 0;
   }
 
-  // NEW: Reset lessons_finished to 0
   Future<int> resetLessonsFinished(int id) async {
     Database db = await database;
     return await db.update(
@@ -133,7 +126,6 @@ class DatabaseService {
     );
   }
 
-  // Additional useful methods
   Future<Course?> getCourseById(int id) async {
     Database db = await database;
     List<Map<String, dynamic>> results = await db.query(
@@ -149,7 +141,6 @@ class DatabaseService {
     return null;
   }
 
-  // NEW: Get progress for all courses
   Future<Map<int, double>> getAllCourseProgress() async {
     Database db = await database;
     List<Map<String, dynamic>> results = await db.rawQuery('''
@@ -162,8 +153,6 @@ class DatabaseService {
       final id = row['id'] as int;
       final lessonsFinished = row['lessons_finished'] as int;
 
-      // You need to know total lessons per course. This requires additional logic.
-      // For now, we'll return the raw count. You'll need to map this to total lessons.
       progress[id] = lessonsFinished.toDouble();
     }
 
@@ -182,37 +171,34 @@ class Course {
   int? id;
   final String title;
   final int courseIndex;
-  final int lessonsFinished; // New field
+  final int lessonsFinished;
 
   Course({
     this.id,
     required this.title,
     required this.courseIndex,
-    this.lessonsFinished = 0, // Default to 0
+    this.lessonsFinished = 0,
   });
 
-  // Convert Course object to Map for database operations
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'title': title,
       'course_index': courseIndex,
-      'lessons_finished': lessonsFinished, // Added
+      'lessons_finished': lessonsFinished,
     };
   }
 
-  // Create Course object from Map (database result)
   factory Course.fromMap(Map<String, dynamic> map) {
     return Course(
       id: map['id'],
       title: map['title'],
       courseIndex: map['course_index'],
       lessonsFinished:
-          map['lessons_finished'] ?? 0, // Handle null for old records
+          map['lessons_finished'] ?? 0,
     );
   }
 
-  // Helper method to create a copy with updated values
   Course copyWith({
     int? id,
     String? title,
@@ -227,7 +213,6 @@ class Course {
     );
   }
 
-  // Calculate progress percentage (if you know total lessons)
   double calculateProgress(int totalLessons) {
     if (totalLessons <= 0) return 0.0;
     return (lessonsFinished / totalLessons).clamp(0.0, 1.0);

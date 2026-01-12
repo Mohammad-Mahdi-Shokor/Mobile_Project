@@ -38,14 +38,14 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xFFF7F9FC),
 
     colorScheme: const ColorScheme.light(
-      primary: Color(0xFF3D5CFF), // Brand blue
-      secondary: Color(0xFFE6F2FF), // Containers / Cards
+      primary: Color(0xFF3D5CFF),
+      secondary: Color(0xFFE6F2FF),
       surface: Colors.white,
-      onSurface: Color(0xFF1F1F39), // Primary text
+      onSurface: Color(0xFF1F1F39),
     ),
 
     appBarTheme: AppBarTheme(
-      backgroundColor: const Color(0xFF3D5CFF), // Brand app bar
+      backgroundColor: const Color(0xFF3D5CFF),
       elevation: 0,
       titleTextStyle: GoogleFonts.poppins(
         fontSize: 22,

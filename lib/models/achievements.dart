@@ -5,7 +5,7 @@ class Achievement {
   final String name;
   final String description;
   final double progress;
-  final double target;
+  final int target;
   final bool isUnlocked;
   final AchievementType type;
   final Color color;

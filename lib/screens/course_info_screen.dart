@@ -7,7 +7,7 @@ import '../services/registered_course.dart';
 import '../services/scores_repo.dart';
 
 class CourseInfoScreen extends StatefulWidget {
-  final RegisteredCourse course;
+  final CourseInfo course;
   const CourseInfoScreen({super.key, required this.course});
 
   @override
@@ -25,7 +25,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
     super.initState();
     _checkIfCourseRegistered();
     setState(() {
-      courseIndex = registeredCoursesWithProgress.indexOf(widget.course);
+      courseIndex = CoursesInfo.indexOf(widget.course);
     });
   }
 
@@ -115,7 +115,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
 
   void _navigateToLessonPath() {
     if (!_isCourseRegistered) {
-      // Register first, then navigate
       _registerCourse().then((_) {
         if (_isCourseRegistered) {
           Navigator.push(
@@ -159,7 +158,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
         actions: [
           if (_isCourseRegistered)
             IconButton(
-              icon: Icon(Icons.delete_outline, color: Colors.red),
+              icon: Icon(Icons.delete_outlined, color: Colors.red),
               onPressed: _isLoading ? null : _unregisterCourse,
               tooltip: 'Unregister from course',
             ),
@@ -174,42 +173,35 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Course Image
                     Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-
-                        child:
-                            widget.course.imageUrl.startsWith('http')
-                                ? Image.network(
-                                  widget.course.imageUrl,
-                                  height: 180,
-                                  width: 180,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 180,
-                                      width: 100,
-                                      color: Colors.grey[200],
-                                      child: Icon(
-                                        Icons.book,
-                                        size: 60,
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
-                                )
-                                : Image.asset(
-                                  widget.course.imageUrl,
-                                  height: 180,
-                                  width: 100,
-                                  fit: BoxFit.cover,
+                      child: widget.course.imageUrl.startsWith('http')
+                          ? Image.network(
+                            widget.course.imageUrl,
+                            height: 180,
+                            width: 180,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 180,
+                                width: 100,
+                                color: Colors.grey[200],
+                                child: Icon(
+                                  Icons.book,
+                                  size: 60,
+                                  color: Colors.grey,
                                 ),
-                      ),
+                              );
+                            },
+                          )
+                          : Image.asset(
+                            widget.course.imageUrl,
+                            height: 180,
+                            width: 100,
+                            fit: BoxFit.cover,
+                          ),
                     ),
                     const SizedBox(height: 24),
 
-                    // About Section
                     Text(
                       "About the course",
                       style: GoogleFonts.poppins(
@@ -227,15 +219,13 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Stats Row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _buildStatItem(
                           icon: Icons.menu_book,
                           label: 'Lessons',
-                          value:
-                              allCourseLessons[courseIndex].length.toString(),
+                          value: Lessons[courseIndex].length.toString(),
                         ),
                         _buildStatItem(
                           icon: Icons.schedule,
@@ -251,7 +241,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Course Sections
                     Text(
                       "Course Sections",
                       style: GoogleFonts.poppins(
@@ -261,7 +250,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...allCourseLessons[courseIndex].map(
+                    ...Lessons[courseIndex].map(
                       (lesson) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Row(
@@ -288,7 +277,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
 
-                    // hayde lal sections mne2dar nraje3a
+                    // we need this for later
                     // ...widget.course.sections.map(
                     //   (section) => Padding(
                     //     padding: const EdgeInsets.only(bottom: 10),
@@ -316,8 +305,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                     //   ),
                     // ),
                     const SizedBox(height: 40),
-
-                    // Action Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(

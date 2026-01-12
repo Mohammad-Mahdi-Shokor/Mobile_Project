@@ -28,11 +28,10 @@ class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
 
   bool coursesExpanded = false;
-  final List<RegisteredCourse> courses = registeredCoursesWithProgress;
-  late List<RegisteredCourse> registeredCourses = [];
+  final List<CourseInfo> courses = CoursesInfo;
+  late List<CourseInfo> registeredCourses = [];
   late Widget currentScreen;
 
-  // for profile screen :
   @override
   void initState() {
     super.initState();
@@ -229,9 +228,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
         buttonBackgroundColor: const Color(0xFF18193C),
         animationCurve: Curves.easeInOut,
         animationDuration: const Duration(milliseconds: 400),
-        // These control the curve shape:
         letIndexChange: (index) => true,
-        // Use a container with clip to improve shape
         items: [
           Container(
             padding: const EdgeInsets.all(8),
@@ -280,7 +277,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
             switchScreen();
           });
 
-          // Force refresh when tapping Profile tab
           if (index == 1) {
             Future.delayed(const Duration(milliseconds: 200), () {
               if (mounted) {

@@ -5,13 +5,13 @@ import 'Question.dart';
 import 'achievements.dart';
 import 'lesson.dart';
 
-final List<RegisteredCourse> registeredCoursesWithProgress = [
-  RegisteredCourse(
+final List<CourseInfo> CoursesInfo = [
+  CourseInfo(
     title: "Cybersecurity",
     description:
         "Learn the fundamentals of protecting systems, networks, and data.",
-    numberOfFinishedLessons: 0, // Just started
-    totalLessons: allCourseLessons[0].length,
+    numberOfFinishedLessons: 0,
+    totalLessons: Lessons[0].length,
     about:
         "This course introduces the core principles of cybersecurity. You will learn how cyber attacks work, how systems are protected, and why security is essential in the modern digital world.",
     imageUrl: "https://cdn-icons-png.freepik.com/512/8460/8460433.png",
@@ -26,12 +26,12 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     ],
   ),
 
-  RegisteredCourse(
+  CourseInfo(
     title: "Mobile Development",
     description:
         "Build modern mobile applications using cross-platform technologies.",
-    numberOfFinishedLessons: 0, // In progress
-    totalLessons: allCourseLessons[1].length,
+    numberOfFinishedLessons: 0,
+    totalLessons: Lessons[1].length,
     about:
         "Learn how to build modern, beautiful mobile applications using cross-platform technologies. Focus on Flutter and best practices for app development.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1055/1055687.png",
@@ -43,12 +43,12 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     ],
   ),
 
-  RegisteredCourse(
+  CourseInfo(
     title: "Physics",
     description:
         "Understand the laws that govern matter, energy, and the universe.",
-    numberOfFinishedLessons: 0, // Almost complete
-    totalLessons: allCourseLessons[2].length,
+    numberOfFinishedLessons: 0,
+    totalLessons: Lessons[2].length,
     about:
         "This course explores the fundamental laws governing matter, energy, and motion, helping you understand how the universe works.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1467/1467187.png",
@@ -60,12 +60,12 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
     ],
   ),
 
-  RegisteredCourse(
+  CourseInfo(
     title: "Philosophy",
     description:
         "Explore fundamental questions about existence, knowledge, and ethics.",
-    numberOfFinishedLessons: 0, // Not started yet
-    totalLessons: allCourseLessons[3].length,
+    numberOfFinishedLessons: 0,
+    totalLessons: Lessons[3].length,
     about:
         "Philosophy encourages critical thinking about life's deepest questions, including morality, existence, truth, and knowledge.",
     imageUrl: "https://cdn-icons-png.flaticon.com/512/1995/1995574.png",
@@ -78,8 +78,7 @@ final List<RegisteredCourse> registeredCoursesWithProgress = [
   ),
 ];
 
-final List<List<Lesson>> allCourseLessons = [
-  // Course 0: Cybersecurity lessons
+final List<List<Lesson>> Lessons = [
   [
     Lesson(
       title: "Introduction to Cybersecurity",
@@ -297,7 +296,6 @@ final List<List<Lesson>> allCourseLessons = [
     ),
   ],
 
-  // Course 1: Mobile Development lessons
   [
     Lesson(
       title: "Mobile App Basics",
@@ -343,7 +341,6 @@ final List<List<Lesson>> allCourseLessons = [
     ),
   ],
 
-  // Course 2: Physics lessons
   [
     Lesson(
       title: "Classical Mechanics",
@@ -375,7 +372,6 @@ final List<List<Lesson>> allCourseLessons = [
     ),
   ],
 
-  // Course 3: Philosophy lessons
   [
     Lesson(
       title: "Introduction to Philosophy",
@@ -408,8 +404,7 @@ final List<List<Lesson>> allCourseLessons = [
   ],
 ];
 
-// Update your sample achievements with conditions
-List<Achievement> sampleAchievements = [
+List<Achievement> Achievements = [
   Achievement(
     icon: Icons.school,
     name: "First Step",
@@ -505,7 +500,7 @@ List<Achievement> sampleAchievements = [
     name: "Completionist",
     description: "Finish all available courses",
     progress: 0,
-    target: 4,
+    target: CoursesInfo.length,
     type: AchievementType.courseCompletion,
     color: Colors.deepPurple,
   ),

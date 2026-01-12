@@ -12,8 +12,8 @@ import 'test_screen.dart';
 import '../services/user_stats_service.dart';
 
 class LessonPathScreen extends StatefulWidget {
-  final RegisteredCourse course;
-  final RegisteredCourse? originalCourse;
+  final CourseInfo course;
+  final CourseInfo? originalCourse;
 
   const LessonPathScreen({
     super.key,
@@ -37,15 +37,10 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   final UserStatsService _statsService = UserStatsService();
 
   Future<void> _loadScores() async {
-    final int currentCourseIndex = registeredCoursesWithProgress.indexOf(
-      widget.course,
-    );
+    final int currentCourseIndex = CoursesInfo.indexOf(widget.course);
     courseIndex = currentCourseIndex;
 
-    await ScoresRepository.initializeScores(
-      registeredCoursesWithProgress.length,
-      lessons.length,
-    );
+    await ScoresRepository.initializeScores(CoursesInfo.length, lessons.length);
 
     final courseScoresList = await ScoresRepository.getCourseScores(
       currentCourseIndex,
@@ -65,8 +60,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         }
       }
     });
-
-    // await ScoresRepository.debugPrintScores();
   }
 
   @override
@@ -78,7 +71,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _initializeScreen() async {
     setState(() => _isLoading = true);
 
-    // Get lessons
     if (widget.originalCourse != null) {
       lessons = _findCourseLessons(widget.originalCourse!.title);
     } else {
@@ -97,12 +89,12 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
   List<Lesson> _findCourseLessons(String courseTitle) {
     try {
-      final courseIndex = registeredCoursesWithProgress.indexWhere(
+      final courseIndex = CoursesInfo.indexWhere(
         (course) => course.title == courseTitle,
       );
 
-      if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
-        return allCourseLessons[courseIndex];
+      if (courseIndex >= 0 && courseIndex < Lessons.length) {
+        return Lessons[courseIndex];
       }
     } catch (e) {
       print('Error finding course lessons: $e');
@@ -126,7 +118,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     }).toList();
   }
 
-  // Find course in database by title
   Future<void> _findDatabaseCourse() async {
     try {
       final allCourses = await _dbService.getCourses();
@@ -137,7 +128,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         orElse: () {
           print(
             "Course not found in database: ${widget.course.title}",
-          ); // Debug
+          );
           return Course(
             title: widget.course.title,
             courseIndex: 0,
@@ -150,7 +141,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       _completedLessons = databaseCourse.lessonsFinished;
       print(
         "Loaded from DB: courseId=$_databaseCourseId, completedLessons=$_completedLessons",
-      ); // Debug
+      );
     } catch (e) {
       print('Error finding database course: $e');
       _completedLessons = 0;
@@ -167,7 +158,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
     DateTime? startTime;
     if (isFirstLessonOfFirstCourse) {
       startTime = DateTime.now();
-      print("Starting timer for fast completion tracking");
     }
 
     final score = await Navigator.push<int>(
@@ -194,7 +184,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
       final shouldUnlockNext = isPassingScore && index + 1 < lessons.length;
 
       setState(() {
-        courseScores = updatedScores; // CHANGED: courseScores not scores
+        courseScores = updatedScores;
 
         if (shouldUnlockNext) {
           final updatedUnlocked = List<bool>.from(unlocked);
@@ -203,9 +193,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         }
       });
 
-      final currentCourseIndex = registeredCoursesWithProgress.indexOf(
-        widget.course,
-      );
+      final currentCourseIndex = CoursesInfo.indexOf(widget.course);
       await ScoresRepository.addScore(currentCourseIndex, index, score);
 
       if (isPassingScore) {
@@ -450,123 +438,113 @@ class _CourseNodeState extends State<CourseNode> {
     } else if (widget.isCompleted) {
       nodeColor = const Color(0xFF4CAF50);
       borderColor = const Color(0xFF388E3C);
-    } else if (hovering) {
-      nodeColor = const Color(0xFF5C6BC0);
-      borderColor = const Color(0xFF3D5CFF);
-    } else {
+    }else {
       nodeColor = const Color(0xFF3D5CFF);
       borderColor = const Color(0xFF1E40AF);
     }
 
     return Column(
       children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          transform:
-              Matrix4.identity()
-                ..scale(hovering && !widget.locked ? 1.15 : 1.0),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              if (!widget.locked && hovering)
-                Container(
-                  width: nodeSize + 12,
-                  height: nodeSize + 12,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: nodeColor.withOpacity(0.2),
-                  ),
-                ),
-
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            if (!widget.locked && hovering)
               Container(
-                padding: EdgeInsets.all(10),
-                width: nodeSize,
-                height: nodeSize,
+                width: nodeSize + 12,
+                height: nodeSize + 12,
                 decoration: BoxDecoration(
-                  color: nodeColor,
                   shape: BoxShape.circle,
-                  border: Border.all(color: borderColor, width: 3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(
-                        widget.locked ? 0.1 : 0.25,
-                      ),
-                      blurRadius: 6,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child:
-                      widget.locked
-                          ? Icon(Icons.lock, color: textColor, size: 24)
-                          : Text(
-                            widget.index.toString(),
-                            style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                  color: nodeColor.withOpacity(0.2),
                 ),
               ),
-
-              if (widget.isCompleted && !widget.locked)
-                Positioned(
-                  top: 2,
-                  right: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(color: Colors.green, width: 1.5),
+        
+            Container(
+              padding: EdgeInsets.all(10),
+              width: nodeSize,
+              height: nodeSize,
+              decoration: BoxDecoration(
+                color: nodeColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: borderColor, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(
+                      widget.locked ? 0.1 : 0.25,
                     ),
-                    child: const Icon(
-                      Icons.check,
-                      size: 12,
-                      color: Colors.green,
-                    ),
+                    blurRadius: 6,
+                    offset: const Offset(0, 4),
                   ),
-                ),
-
-              if (!widget.locked && widget.percentage > 0)
-                Positioned(
-                  bottom: -4,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          widget.percentage < 50
-                              ? Colors.red
-                              : widget.percentage < 80
-                              ? Colors.orange
-                              : Colors.green,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
+                ],
+              ),
+              child: Center(
+                child:
+                    widget.locked
+                        ? Icon(Icons.lock, color: textColor, size: 24)
+                        : Text(
+                          widget.index.toString(),
+                          style: GoogleFonts.poppins(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      '${widget.percentage}%',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              ),
+            ),
+        
+            if (widget.isCompleted && !widget.locked)
+              Positioned(
+                top: 2,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    border: Border.all(color: Colors.green, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.check,
+                    size: 12,
+                    color: Colors.green,
+                  ),
+                ),
+              ),
+        
+            if (!widget.locked && widget.percentage > 0)
+              Positioned(
+                bottom: -4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color:
+                        widget.percentage < 50
+                            ? Colors.red
+                            : widget.percentage < 80
+                            ? Colors.orange
+                            : Colors.green,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
                       ),
+                    ],
+                  ),
+                  child: Text(
+                    '${widget.percentage}%',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+          ],
         ),
-        // ),
         const SizedBox(height: 8),
         SizedBox(
           width: 100,

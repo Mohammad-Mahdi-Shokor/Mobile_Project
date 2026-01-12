@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class RegisteredCourse {
+class CourseInfo {
   final int? id;
   final String title;
   final String description;
@@ -12,7 +12,7 @@ class RegisteredCourse {
   final double progress;
   final bool isCompleted;
 
-  RegisteredCourse({
+  CourseInfo({
     this.id,
     required this.title,
     required this.description,
@@ -24,7 +24,6 @@ class RegisteredCourse {
   }) : progress = totalLessons > 0 ? numberOfFinishedLessons / totalLessons : 0,
        isCompleted = numberOfFinishedLessons >= totalLessons;
 
-  // IMPORTANT: Make sure all fields are in toMap()
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -39,8 +38,8 @@ class RegisteredCourse {
     };
   }
 
-  factory RegisteredCourse.fromMap(Map<String, dynamic> map) {
-    return RegisteredCourse(
+  factory CourseInfo.fromMap(Map<String, dynamic> map) {
+    return CourseInfo(
       id: map['id'],
       title: map['title'],
       description: map['description'],

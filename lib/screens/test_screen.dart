@@ -8,9 +8,9 @@ import '../models/Question.dart';
 class TestScreen extends StatefulWidget {
   final String section;
   final List<Question> questions;
-  final int courseId; // Add courseId parameter
-  final int totalLessons; // Add total lessons for progress calculation
-  final VoidCallback? onTestCompleted; // Callback when test is completed
+  final int courseId;
+  final int totalLessons;
+  final VoidCallback? onTestCompleted;
 
   const TestScreen({
     super.key,
@@ -73,7 +73,6 @@ class _TestScreenState extends State<TestScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Score Circle
                   Container(
                     width: 100,
                     height: 100,
@@ -103,10 +102,7 @@ class _TestScreenState extends State<TestScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // Title
                   Text(
                     score >= 70 ? 'Congratulations!' : 'Test Completed',
                     style: GoogleFonts.poppins(
@@ -116,50 +112,7 @@ class _TestScreenState extends State<TestScreen> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-
                   const SizedBox(height: 16),
-
-                  // score >= 100
-                  //     ? Container()
-                  //     : Container(
-                  //       padding: const EdgeInsets.symmetric(
-                  //         horizontal: 20,
-                  //         vertical: 12,
-                  //       ),
-                  //       decoration: BoxDecoration(
-                  //         color: Theme.of(
-                  //           context,
-                  //         ).colorScheme.surfaceVariant.withOpacity(0.3),
-                  //         borderRadius: BorderRadius.circular(16),
-                  //       ),
-                  //       child: Column(
-                  //         children: [
-                  //           Row(
-                  //             mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  //             children: [
-                  //               Text(
-                  //                 'Correct Answers:',
-                  //                 style: GoogleFonts.poppins(
-                  //                   fontSize: 14,
-                  //                   color: Theme.of(
-                  //                     context,
-                  //                   ).colorScheme.onSurface.withOpacity(0.7),
-                  //                 ),
-                  //               ),
-                  //               Text(
-                  //                 '$correctAnswers/${widget.questions.length}',
-                  //                 style: GoogleFonts.poppins(
-                  //                   fontSize: 16,
-                  //                   fontWeight: FontWeight.w600,
-                  //                   color: _getScoreColor(score),
-                  //                 ),
-                  //               ),
-                  //             ],
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  // score < 100 ? SizedBox(height: 10) : Container(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -179,9 +132,7 @@ class _TestScreenState extends State<TestScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 24),
-
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -334,17 +285,14 @@ class _TestScreenState extends State<TestScreen> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 30),
-
-                    // Answers
                     ...List.generate(currentAnswers.length, (i) {
                       bool isSelected = i == selectedIndex;
                       bool isCorrect =
                           currentAnswers[i].answer ==
                           question.answers[0].answer;
 
-                      Color bgColor;
+                      Color? bgColor;
                       IconData? icon;
                       Color? iconColor;
 

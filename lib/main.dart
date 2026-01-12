@@ -17,8 +17,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.addPostFrameCallback((_) async {
     await ScoresRepository.initializeScores(
-      registeredCoursesWithProgress.length,
-      10, // Or maximum lessons of course
+      CoursesInfo.length,
+      10,
     );
   });
   final statsService = UserStatsService();
@@ -78,7 +78,6 @@ class _MyAppState extends State<MyApp> {
           _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
     });
 
-    // Save theme preference
     await _userService.saveThemePreference(_themeMode == ThemeMode.dark);
   }
 
@@ -120,10 +119,8 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // App logo or icon
             Icon(Icons.school, size: 80, color: Theme.of(context).primaryColor),
             const SizedBox(height: 20),
-            // App name
             Text(
               'Learning App',
               style: Theme.of(
@@ -131,7 +128,6 @@ class SplashScreen extends StatelessWidget {
               ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            // Loading indicator
             const CircularProgressIndicator(),
           ],
         ),

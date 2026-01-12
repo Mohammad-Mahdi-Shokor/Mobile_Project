@@ -28,7 +28,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _usernameController = TextEditingController();
-  final _firstNameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   final _tagController = TextEditingController();
   final _ageController = TextEditingController();
 
@@ -65,11 +65,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final user = await _userService.getUser();
     if (user != null) {
       _usernameController.text = user.username;
-      _firstNameController.text = user.FirstName;
+      _fullNameController.text = user.fullName;
       _tagController.text = user.tag;
       _ageController.text = user.age.toString();
-      _selectedGender = user.Gender;
-      _profileImage = user.profilePicture;
+      _selectedGender = user.gender;
+      _profileImage = user.profileImage;
     }
 
     setState(() => _isLoading = false);
@@ -95,15 +95,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
     final user = User(
       username: _usernameController.text.trim(),
-      FirstName: _firstNameController.text.trim(),
+      fullName: _fullNameController.text.trim(),
       tag: _tagController.text.trim(),
       age: int.tryParse(_ageController.text) ?? 0,
-      Gender: _selectedGender,
-      profilePicture:
+      gender: _selectedGender,
+      profileImage:
           _profileImage.isEmpty
               ? 'https://cdn.wallpapersafari.com/95/19/uFaSYI.jpg'
               : _profileImage,
-      achievementsScores: List.filled(13, 0.0),
+      achievementsProgress: List.filled(13, 0.0),
       registeredCourses: [],
       registedCoursesIndexes: [],
     );
@@ -338,9 +338,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const SizedBox(height: 16),
 
                       TextFormField(
-                        controller: _firstNameController,
+                        controller: _fullNameController,
                         decoration: const InputDecoration(
-                          labelText: 'First Name',
+                          labelText: 'Full Name',
                         ),
                       ),
                       const SizedBox(height: 16),

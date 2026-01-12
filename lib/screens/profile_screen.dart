@@ -51,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<List<Achievement>> _calculateAchievementsProgress() async {
-    final achievements = List<Achievement>.from(sampleAchievements);
+    final achievements = List<Achievement>.from(Achievements);
     final courses = await _dbService.getCourses();
 
     int totalLessonsCompleted = 0;
@@ -83,8 +83,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           break;
         case "Completionist":
           newProgress =
-              registeredCoursesCount >= 4
-                  ? 4
+              registeredCoursesCount >= CoursesInfo.length
+                  ? CoursesInfo.length.toDouble()
                   : registeredCoursesCount.toDouble();
           break;
         default:
@@ -203,9 +203,9 @@ Keep learning with me! 💪
                   radius:
                       isSmallScreen ? screenWidth * 0.18 : screenWidth * 0.15,
                   backgroundImage:
-                      displayUser.profilePicture.startsWith('http')
-                          ? NetworkImage(displayUser.profilePicture)
-                          : FileImage(File(displayUser.profilePicture))
+                      displayUser.profileImage.startsWith('http')
+                          ? NetworkImage(displayUser.profileImage)
+                          : FileImage(File(displayUser.profileImage))
                               as ImageProvider,
                 ),
               ),
@@ -236,7 +236,7 @@ Keep learning with me! 💪
               SizedBox(height: screenHeight * 0.008),
 
               Text(
-                "${displayUser.age}, ${displayUser.Gender}",
+                "${displayUser.age}, ${displayUser.gender}",
                 style: GoogleFonts.poppins(
                   fontSize:
                       isSmallScreen ? screenWidth * 0.037 : screenWidth * 0.039,

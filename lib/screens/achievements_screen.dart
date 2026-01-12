@@ -42,7 +42,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   Future<List<Achievement>> _calculateAchievementsProgress(
     List<Course> courses,
   ) async {
-    final achievements = List<Achievement>.from(sampleAchievements);
+    final achievements = List<Achievement>.from(Achievements);
     final statsService = UserStatsService();
 
     final totalLessonsCompleted = courses.fold(
@@ -59,11 +59,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
     bool hasMasteredCourse = courses.any((course) {
       try {
-        final courseIndex = registeredCoursesWithProgress.indexWhere(
+        final courseIndex = CoursesInfo.indexWhere(
           (c) => c.title == course.title,
         );
-        if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
-          final totalLessonsInCourse = allCourseLessons[courseIndex].length;
+        if (courseIndex >= 0 && courseIndex < Lessons.length) {
+          final totalLessonsInCourse = Lessons[courseIndex].length;
           return course.lessonsFinished >= totalLessonsInCourse;
         }
       } catch (e) {
@@ -83,8 +83,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
         case "Completionist":
           newProgress =
-              registeredCoursesCount >= 4
-                  ? 4
+              registeredCoursesCount >= CoursesInfo.length
+                  ? CoursesInfo.length.toDouble()
                   : registeredCoursesCount.toDouble();
           break;
 
@@ -97,7 +97,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           break;
 
         case "Speed Learner":
-          // Track if completed 5 lessons in one day
           newProgress = todayLessonCount >= 5 ? 5 : todayLessonCount.toDouble();
           break;
 
@@ -140,10 +139,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           newProgress = achievement.progress;
       }
 
-      achievements[i] = achievement.copyWith(
-        progress: newProgress,
-        isUnlocked: newProgress >= achievement.target,
-      );
+      achievements[i] = achievement.copyWith(progress: newProgress);
     }
 
     return achievements;
@@ -185,7 +181,6 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with icon and status - Fixed overflow
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -328,12 +323,12 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
             Text(
               'Achievement Stats',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 26,
                 fontWeight: FontWeight.w600,
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -425,14 +420,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               : RefreshIndicator(
                 onRefresh: _loadData,
                 child: ListView(
+                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(16),
                   children: [
-                    // Stats card
                     _buildStatsCard(),
-
                     const SizedBox(height: 24),
-
-                    // Achievements list header
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

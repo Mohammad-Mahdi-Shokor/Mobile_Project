@@ -16,15 +16,14 @@ class _LearningScreenState extends State<LearningScreen> {
   bool _isLoading = true;
   final DatabaseService _databaseService = DatabaseService();
   final Map<String, int> _courseProgress = {};
-  int totalAvaialableCourses = registeredCoursesWithProgress.length;
+  int totalAvaialableCourses = CoursesInfo.length;
   @override
   void initState() {
     super.initState();
     _loadRegisteredCourses();
   }
 
-  List<String> comingSoonCourseTitles = [
-    // coming soon courses
+  List<String> comingSoon = [
     'Artificial Intelligence',
     'Web Development',
     'Data Science',
@@ -59,20 +58,20 @@ class _LearningScreenState extends State<LearningScreen> {
 
   int _getTotalLessons(String courseTitle) {
     try {
-      final courseIndex = registeredCoursesWithProgress.indexWhere(
+      final courseIndex = CoursesInfo.indexWhere(
         (course) => course.title == courseTitle,
       );
 
-      if (courseIndex >= 0 && courseIndex < allCourseLessons.length) {
-        return allCourseLessons[courseIndex].length;
+      if (courseIndex >= 0 && courseIndex < Lessons.length) {
+        return Lessons[courseIndex].length;
       }
     } catch (e) {
       print("Error getting total lessons: $e");
     }
 
-    final course = registeredCoursesWithProgress.firstWhere(
+    final course = CoursesInfo.firstWhere(
       (course) => course.title == courseTitle,
-      orElse: () => registeredCoursesWithProgress.first,
+      orElse: () => CoursesInfo.first,
     );
 
     return course.sections.length;
@@ -119,9 +118,7 @@ class _LearningScreenState extends State<LearningScreen> {
           ),
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
-            itemCount:
-                registeredCoursesWithProgress.length +
-                comingSoonCourseTitles.length,
+            itemCount: CoursesInfo.length + comingSoon.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: screenWidth * 0.03,
@@ -132,9 +129,8 @@ class _LearningScreenState extends State<LearningScreen> {
               bool isAvailable = index < totalAvaialableCourses;
               final isDark = theme.brightness == Brightness.dark;
 
-              final sampleCourse;
-              sampleCourse =
-                  isAvailable ? registeredCoursesWithProgress[index] : null;
+              dynamic sampleCourse;
+              sampleCourse = isAvailable ? CoursesInfo[index] : null;
 
               final isRegistered =
                   isAvailable ? _isCourseRegistered(sampleCourse.title) : null;
@@ -152,17 +148,16 @@ class _LearningScreenState extends State<LearningScreen> {
               final comingSoonCourseTitle =
                   isAvailable
                       ? null
-                      : comingSoonCourseTitles[index -
-                          registeredCoursesWithProgress.length];
+                      : comingSoon[index - CoursesInfo.length];
 
-              return index < registeredCoursesWithProgress.length
+              return isAvailable
                   ? InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder:
-                              (_) => CourseInfoScreen(course: sampleCourse!),
+                              (_) => CourseInfoScreen(course: sampleCourse),
                         ),
                       ).then((_) => _loadRegisteredCourses());
                     },

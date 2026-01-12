@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CircularPercentage extends StatelessWidget {
-  final double percentage; // 0.0 → 1.0
+  final double percentage;
   final double size;
 
   const CircularPercentage({

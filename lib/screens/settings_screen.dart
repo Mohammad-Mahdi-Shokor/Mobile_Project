@@ -64,7 +64,7 @@ class SettingsScreen extends StatelessWidget {
         children: [
           ...settingsItems.keys.map((item) {
             return ListTile(
-              onTap: settingsItems[item], // This works now!
+              onTap: settingsItems[item],
               leading: Icon(
                 itemIcon[settingsItems.keys.toList().indexOf(item)],
                 color: theme.textTheme.bodyLarge!.color!,

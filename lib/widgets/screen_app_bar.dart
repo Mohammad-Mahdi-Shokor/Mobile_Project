@@ -61,7 +61,7 @@ AppBar ScreenAppBar(
       children: [
         FittedBox(
           child: Text(
-            'Hi, ${user.FirstName}',
+            'Hi, ${user.fullName}',
             style: theme.textTheme.titleLarge?.copyWith(
               color: Colors.white,
               fontSize: 18,
@@ -158,7 +158,7 @@ AppBar ScreenAppBar(
               ],
           child: CircleAvatar(
             radius: 25,
-            backgroundImage: _getProfileImage(user.profilePicture),
+            backgroundImage: _getProfileImage(user.profileImage),
           ),
         ),
       ),
@@ -172,7 +172,6 @@ ImageProvider _getProfileImage(String imagePath) {
   } else if (imagePath.isNotEmpty) {
     return FileImage(File(imagePath));
   } else {
-    // Default fallback image
     return const NetworkImage(
       'https://cdn.wallpapersafari.com/95/19/uFaSYI.jpg',
     );
