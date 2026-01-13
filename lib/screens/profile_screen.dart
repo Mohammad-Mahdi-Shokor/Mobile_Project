@@ -28,6 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   User? _currentUser;
   bool _isLoading = true;
   List<Achievement> _achievements = [];
+  bool _showAllAchievements = false;
+  
+
   Map<String, bool> get achievementCompletionMap {
     return {for (var a in _achievements) a.name: a.isCompleted};
   }
@@ -51,15 +54,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<List<Achievement>> _calculateAchievementsProgress() async {
-    final achievements = List<Achievement>.from(Achievements);
     final courses = await _dbService.getCourses();
+    final achievements = List<Achievement>.from(Achievements);
+    final statsService = UserStatsService();
 
-    int totalLessonsCompleted = 0;
-    for (var course in courses) {
-      totalLessonsCompleted += course.lessonsFinished;
-    }
+    final totalLessonsCompleted = courses.fold(
+      0,
+      (sum, course) => sum + course.lessonsFinished,
+    );
+    final registeredCoursesCount = courses.length;
+    final hasPerfectScore = await statsService.hasPerfectScore();
+    final currentStreak = await statsService.getCurrentStreak();
+    final todayLessonCount = await statsService.getTodayLessonCount();
+    final shareCount = await statsService.getShareCount();
+    final correctAnswersCount = await statsService.getCorrectAnswersCount();
+    final hasFastCompletion = await statsService.hasFastCompletion();
 
-    int registeredCoursesCount = courses.length;
+    bool hasMasteredCourse = courses.any((course) {
+      try {
+        final courseIndex = CoursesInfo.indexWhere(
+          (c) => c.title == course.title,
+        );
+        if (courseIndex >= 0 && courseIndex < Lessons.length) {
+          final totalLessonsInCourse = Lessons[courseIndex].length;
+          return course.lessonsFinished >= totalLessonsInCourse;
+        }
+      } catch (e) {
+        print("Error checking course completion: $e");
+      }
+      return false;
+    });
 
     for (int i = 0; i < achievements.length; i++) {
       final achievement = achievements[i];
@@ -69,32 +93,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
         case "First Step":
           newProgress = totalLessonsCompleted >= 1 ? 1 : 0;
           break;
-        case "Consistent":
-          newProgress =
-              totalLessonsCompleted >= 10
-                  ? 10
-                  : totalLessonsCompleted.toDouble();
-          break;
-        case "Course Explorer":
-          newProgress =
-              registeredCoursesCount >= 3
-                  ? 3
-                  : registeredCoursesCount.toDouble();
-          break;
+
         case "Completionist":
           newProgress =
               registeredCoursesCount >= CoursesInfo.length
                   ? CoursesInfo.length.toDouble()
                   : registeredCoursesCount.toDouble();
           break;
+
+        case "Perfect Score":
+          newProgress = hasPerfectScore ? 1 : 0;
+          break;
+
+        case "3-Day Streak":
+          newProgress = currentStreak >= 3 ? 3 : currentStreak.toDouble();
+          break;
+
+        case "Speed Learner":
+          newProgress = todayLessonCount >= 5 ? 5 : todayLessonCount.toDouble();
+          break;
+
+        case "Consistent":
+          newProgress =
+              totalLessonsCompleted >= 10
+                  ? 10
+                  : totalLessonsCompleted.toDouble();
+          break;
+
+        case "Course Explorer":
+          newProgress =
+              registeredCoursesCount >= 3
+                  ? 3
+                  : registeredCoursesCount.toDouble();
+          break;
+
+        case "Master Student":
+          newProgress = hasMasteredCourse ? 1 : 0;
+          break;
+
+        case "Social Learner":
+          newProgress = shareCount >= 5 ? 5 : shareCount.toDouble();
+          break;
+
+        case "Quick Thinker":
+          newProgress =
+              correctAnswersCount >= 20 ? 20 : correctAnswersCount.toDouble();
+          break;
+
+        case "Fast Starter":
+          newProgress = hasFastCompletion ? 1 : 0;
+          break;
+
+        case "Perfect Week":
+          newProgress = currentStreak >= 7 ? 7 : currentStreak.toDouble();
+          break;
+
         default:
           newProgress = achievement.progress;
       }
 
-      achievements[i] = achievement.copyWith(
-        progress: newProgress,
-        isUnlocked: newProgress >= achievement.target,
-      );
+      achievements[i] = achievement.copyWith(progress: newProgress);
     }
 
     return achievements;
@@ -156,6 +214,7 @@ Keep learning with me! 💪
     }
   }
 
+  
   Map<String, bool> getAchievementCompletionMap() {
     return {
       for (var achievement in _achievements)
@@ -311,54 +370,84 @@ Keep learning with me! 💪
 
                     const SizedBox(height: 16),
 
-                    GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount:
-                          _achievements.length > 6 ? 6 : _achievements.length,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 0.85,
+                    AnimatedSize(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      child: GridView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: _showAllAchievements ? _achievements.length : (_achievements.length > 6 ? 6 : _achievements.length),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 0.85,
+                        ),
+                        itemBuilder: (context, index) {
+                          final achievement = _achievements[index];
+                          final isCompleted =
+                              achievementCompletionMap[achievement.name] ?? false;
+                      
+                          return _buildAchievementPreview(
+                            achievement: achievement,
+                            isCompleted: isCompleted,
+                            context: context,
+                            isSmallScreen: isSmallScreen,
+                          );
+                        },
                       ),
-                      itemBuilder: (context, index) {
-                        final achievement = _achievements[index];
-                        final isCompleted =
-                            achievementCompletionMap[achievement.name] ?? false;
-
-                        return _buildAchievementPreview(
-                          achievement: achievement,
-                          isCompleted: isCompleted,
-                          context: context,
-                          isSmallScreen: isSmallScreen,
-                        );
-                      },
                     ),
 
-                    if (_achievements.length > 6)
+                    if (_achievements.length > 6 && !_showAllAchievements)
                       Padding(
-                        padding: const EdgeInsets.only(top: 16),
+                        padding: const EdgeInsets.only(top: 8),
                         child: Center(
-                          child: Text(
-                            '+ ${_achievements.length - 6} more achievements',
-                            style: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: theme.colorScheme.onSurface.withOpacity(
-                                0.6,
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showAllAchievements = true;
+                              });
+                            },
+                            child: Text(
+                              '+ ${_achievements.length - 6} more achievements',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: const Color(0xFF3D5CFF),
+                                fontStyle: FontStyle.italic,
                               ),
-                              fontStyle: FontStyle.italic,
                             ),
                           ),
                         ),
                       ),
+
+                      if (_showAllAchievements && _achievements.length > 6)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Center(
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _showAllAchievements = false;
+                                });
+                              },
+                              child: Text(
+                                'Show less',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  color: Colors.grey[700],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                   ],
                 ),
               ),
 
               SizedBox(height: screenHeight * 0.03),
               SizedBox(height: screenHeight * 0.02),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: _shareProgress,

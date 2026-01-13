@@ -368,8 +368,8 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
                     top: i * nodeSpacing,
                     left:
                         i % 2 == 0
-                            ? MediaQuery.of(context).size.width * 0.18
-                            : MediaQuery.of(context).size.width * 0.62,
+                            ? MediaQuery.of(context).size.width * 0.18 - 17
+                            : MediaQuery.of(context).size.width * 0.62 - 17,
                     child: MouseRegion(
                       cursor:
                           unlocked[i]
@@ -424,7 +424,7 @@ class _CourseNodeState extends State<CourseNode> {
 
   @override
   Widget build(BuildContext context) {
-    final nodeSize = 70.0;
+    final nodeSize = 80.0;
     final isDark = widget.theme.brightness == Brightness.dark;
 
     Color nodeColor;
@@ -446,6 +446,7 @@ class _CourseNodeState extends State<CourseNode> {
     return Column(
       children: [
         Stack(
+          clipBehavior: Clip.none,
           alignment: Alignment.center,
           children: [
             if (!widget.locked && hovering)
@@ -526,6 +527,7 @@ class _CourseNodeState extends State<CourseNode> {
                             ? Colors.orange
                             : Colors.green,
                     borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.white, width: 0.45),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),
@@ -613,12 +615,12 @@ class LessonPathPainter extends CustomPainter {
             ..strokeCap = StrokeCap.round;
 
       final startX =
-          i % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
-      final startY = i * spacing + 35;
+          i % 2 == 0 ? size.width * 0.18 + 40 : size.width * 0.62 + 40;
+      final startY = i * spacing + 40;
 
       final endX =
-          (i + 1) % 2 == 0 ? size.width * 0.18 + 35 : size.width * 0.62 + 35;
-      final endY = (i + 1) * spacing + 35;
+          (i + 1) % 2 == 0 ? size.width * 0.18 + 40 : size.width * 0.62 + 40;
+      final endY = (i + 1) * spacing + 40;
 
       final controlX1 = startX + (endX - startX) * 0.5;
       final controlY1 = startY + spacing * 0.3;

@@ -68,7 +68,7 @@ class User {
       tag: tag ?? this.tag,
       age: age ?? this.age,
       gender: Gender ?? gender,
-      profileImage: profilePicture ?? this.profileImage,
+      profileImage: profilePicture ?? profileImage,
       achievementsProgress: achievementsScores ?? achievementsProgress,
       registeredCourses: registeredCourses ?? this.registeredCourses,
       registedCoursesIndexes:
