@@ -295,22 +295,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           widget.isEditing ? 'Edit Profile' : 'Complete Profile',
           style: GoogleFonts.poppins(),
         ),
-        leading: IconButton(
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (ctx) {
-                  return NavigationScreen(
-                    onToggleTheme: widget.onToggleTheme,
-                    selectedIndex: 1,
-                  );
-                },
-              ),
-            );
-          },
-          icon: Icon(Icons.arrow_back),
-        ),
+        leading:
+            widget.isEditing
+                ? IconButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) {
+                          return NavigationScreen(
+                            onToggleTheme: widget.onToggleTheme,
+                            selectedIndex: 1,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.arrow_back),
+                )
+                : Container(),
       ),
       body:
           _isLoading
