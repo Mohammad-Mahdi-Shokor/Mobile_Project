@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/lesson_path_screen.dart';
 import '../services/database_helper.dart';
-import '../services/registered_course.dart';
+import '../models/CourseInfo.dart';
 import '../services/scores_repo.dart';
 
 class CourseInfoScreen extends StatefulWidget {

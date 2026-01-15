@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/registered_course.dart';
+import 'CourseInfo.dart';
 import 'Question.dart';
 import 'achievements.dart';
 import 'lesson.dart';

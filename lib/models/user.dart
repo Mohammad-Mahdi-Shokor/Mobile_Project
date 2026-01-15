@@ -1,4 +1,4 @@
-import '../services/registered_course.dart';
+import 'CourseInfo.dart';
 
 class User {
   final String username;

@@ -6,7 +6,7 @@ import 'package:mobile_project/models/data.dart';
 import '../models/Question.dart';
 import '../models/lesson.dart';
 import '../services/database_helper.dart';
-import '../services/registered_course.dart';
+import '../models/CourseInfo.dart';
 import '../services/scores_repo.dart';
 import 'test_screen.dart';
 import '../services/user_stats_service.dart';
