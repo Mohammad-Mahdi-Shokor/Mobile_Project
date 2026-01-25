@@ -16,10 +16,7 @@ import 'services/user_preferences_services.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   WidgetsBinding.instance.addPostFrameCallback((_) async {
-    await ScoresRepository.initializeScores(
-      CoursesInfo.length,
-      10,
-    );
+    await ScoresRepository.initializeScores(coursesInfo.length, 10);
   });
   final statsService = UserStatsService();
   await statsService.updateLoginStreak();

@@ -3,10 +3,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
-import '../models/Question.dart';
+import '../models/question.dart';
 import '../models/lesson.dart';
 import '../services/database_helper.dart';
-import '../models/CourseInfo.dart';
+import '../models/course_info.dart';
 import '../services/scores_repo.dart';
 import 'test_screen.dart';
 import '../services/user_stats_service.dart';
@@ -37,10 +37,10 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   final UserStatsService _statsService = UserStatsService();
 
   Future<void> _loadScores() async {
-    final int currentCourseIndex = CoursesInfo.indexOf(widget.course);
+    final int currentCourseIndex = coursesInfo.indexOf(widget.course);
     courseIndex = currentCourseIndex;
 
-    await ScoresRepository.initializeScores(CoursesInfo.length, lessons.length);
+    await ScoresRepository.initializeScores(coursesInfo.length, lessons.length);
 
     final courseScoresList = await ScoresRepository.getCourseScores(
       currentCourseIndex,
@@ -88,16 +88,12 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   }
 
   List<Lesson> _findCourseLessons(String courseTitle) {
-    try {
-      final courseIndex = CoursesInfo.indexWhere(
-        (course) => course.title == courseTitle,
-      );
+    final courseIndex = coursesInfo.indexWhere(
+      (course) => course.title == courseTitle,
+    );
 
-      if (courseIndex >= 0 && courseIndex < Lessons.length) {
-        return Lessons[courseIndex];
-      }
-    } catch (e) {
-      print('Error finding course lessons: $e');
+    if (courseIndex >= 0 && courseIndex < lessonsInfo.length) {
+      return lessonsInfo[courseIndex];
     }
     return widget.course.sections.map((section) {
       return Lesson(
@@ -121,14 +117,10 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
   Future<void> _findDatabaseCourse() async {
     try {
       final allCourses = await _dbService.getCourses();
-      print("Found ${allCourses.length} courses in database");
 
       final databaseCourse = allCourses.firstWhere(
         (course) => course.title == widget.course.title,
         orElse: () {
-          print(
-            "Course not found in database: ${widget.course.title}",
-          );
           return Course(
             title: widget.course.title,
             courseIndex: 0,
@@ -139,11 +131,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
 
       _databaseCourseId = databaseCourse.id;
       _completedLessons = databaseCourse.lessonsFinished;
-      print(
-        "Loaded from DB: courseId=$_databaseCourseId, completedLessons=$_completedLessons",
-      );
     } catch (e) {
-      print('Error finding database course: $e');
       _completedLessons = 0;
     }
   }
@@ -193,7 +181,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         }
       });
 
-      final currentCourseIndex = CoursesInfo.indexOf(widget.course);
+      final currentCourseIndex = coursesInfo.indexOf(widget.course);
       await ScoresRepository.addScore(currentCourseIndex, index, score);
 
       if (isPassingScore) {
@@ -208,7 +196,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
           );
 
           if (score == 100) {
-            print("Perfect score recorded!");
             await _statsService.recordPerfectScore();
           }
 
@@ -223,21 +210,18 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
           if (isFirstLessonOfFirstCourse && startTime != null) {
             final completionTime =
                 DateTime.now().difference(startTime).inMinutes;
-            print("Lesson completed in $completionTime minutes");
 
             if (completionTime <= 5) {
-              print("Fast starter achievement unlocked!");
               await _statsService.recordFastCompletion();
             }
           }
 
-          if (newCompletedCount >= lessons.length) {
-            print("Course fully completed!");
-          }
+          if (newCompletedCount >= lessons.length) {}
 
           await _updateCourseProgress(_completedLessons);
         }
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Score below 70%. Try again to unlock next lesson.'),
@@ -280,7 +264,6 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
         );
       }
     } catch (e) {
-      print('Error updating progress: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -331,7 +314,7 @@ class _LessonPathScreenState extends State<LessonPathScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -438,7 +421,7 @@ class _CourseNodeState extends State<CourseNode> {
     } else if (widget.isCompleted) {
       nodeColor = const Color(0xFF4CAF50);
       borderColor = const Color(0xFF388E3C);
-    }else {
+    } else {
       nodeColor = const Color(0xFF3D5CFF);
       borderColor = const Color(0xFF1E40AF);
     }
@@ -455,10 +438,10 @@ class _CourseNodeState extends State<CourseNode> {
                 height: nodeSize + 12,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: nodeColor.withOpacity(0.2),
+                  color: nodeColor.withValues(alpha: 0.2),
                 ),
               ),
-        
+
             Container(
               padding: EdgeInsets.all(10),
               width: nodeSize,
@@ -469,8 +452,8 @@ class _CourseNodeState extends State<CourseNode> {
                 border: Border.all(color: borderColor, width: 3),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(
-                      widget.locked ? 0.1 : 0.25,
+                    color: Colors.black.withValues(
+                      alpha: widget.locked ? 0.1 : 0.25,
                     ),
                     blurRadius: 6,
                     offset: const Offset(0, 4),
@@ -491,7 +474,7 @@ class _CourseNodeState extends State<CourseNode> {
                         ),
               ),
             ),
-        
+
             if (widget.isCompleted && !widget.locked)
               Positioned(
                 top: 2,
@@ -503,14 +486,10 @@ class _CourseNodeState extends State<CourseNode> {
                     color: Colors.white,
                     border: Border.all(color: Colors.green, width: 1.5),
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    size: 12,
-                    color: Colors.green,
-                  ),
+                  child: const Icon(Icons.check, size: 12, color: Colors.green),
                 ),
               ),
-        
+
             if (!widget.locked && widget.percentage > 0)
               Positioned(
                 bottom: -4,
@@ -530,7 +509,7 @@ class _CourseNodeState extends State<CourseNode> {
                     border: Border.all(color: Colors.white, width: 0.45),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
+                        color: Colors.black.withValues(alpha: 0.2),
                         blurRadius: 4,
                       ),
                     ],
@@ -608,7 +587,7 @@ class LessonPathPainter extends CustomPainter {
           Paint()
             ..color =
                 isSegmentUnlocked
-                    ? const Color(0xFF3D5CFF).withOpacity(0.7)
+                    ? const Color(0xFF3D5CFF).withValues(alpha: 0.7)
                     : (isDark ? Colors.grey[700]! : Colors.grey[300]!)
             ..style = PaintingStyle.stroke
             ..strokeWidth = isSegmentUnlocked ? 3.5 : 2.5

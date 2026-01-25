@@ -16,16 +16,15 @@ class UserPreferencesService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userMap = user.toMap();
-      
+
       userMap['achievementsScores'] = jsonEncode(user.achievementsProgress);
       userMap['registedCoursesIndexes'] = jsonEncode(
         user.registedCoursesIndexes,
       );
-      
+
       final userJson = jsonEncode(userMap);
       return await prefs.setString(_userKey, userJson);
     } catch (e) {
-      print('Error saving user: $e');
       return false;
     }
   }
@@ -46,24 +45,21 @@ class UserPreferencesService {
         fullName: userMap['firstName'] ?? '',
         tag: userMap['tag'] ?? '',
         age: userMap['age'] ?? 0,
-        gender: userMap['gender'] ?? '',
+        sex: userMap['gender'] ?? '',
         profileImage: userMap['profilePicture'] ?? '',
-        achievementsProgress:
-            userMap['achievementsScores'] != null
-                ? (jsonDecode(userMap['achievementsScores']) as List)
-                    .map((e) => (e as num).toDouble())
-                    .toList()
-                : [],
+        achievementsProgress: userMap['achievementsScores'] != null
+            ? (jsonDecode(userMap['achievementsScores']) as List)
+                  .map((e) => (e as num).toDouble())
+                  .toList()
+            : [],
         registeredCourses: [],
-        registedCoursesIndexes:
-            userMap['registedCoursesIndexes'] != null
-                ? (jsonDecode(userMap['registedCoursesIndexes']) as List)
-                    .map((e) => (e as num).toInt())
-                    .toList()
-                : [],
+        registedCoursesIndexes: userMap['registedCoursesIndexes'] != null
+            ? (jsonDecode(userMap['registedCoursesIndexes']) as List)
+                  .map((e) => (e as num).toInt())
+                  .toList()
+            : [],
       );
     } catch (e) {
-      print('Error loading user: $e');
       return null;
     }
   }
@@ -104,10 +100,10 @@ class UserPreferencesService {
 
       final updatedUser = currentUser.copyWith(
         username: username,
-        FirstName: firstName,
+        firstname: firstName,
         tag: tag,
         age: age,
-        Gender: gender,
+        gender: gender,
         profilePicture: profilePicture,
         achievementsScores: achievementsScores,
         registedCoursesIndexes: registedCoursesIndexes,
@@ -115,7 +111,6 @@ class UserPreferencesService {
 
       return await saveUser(updatedUser);
     } catch (e) {
-      print('Error updating user: $e');
       return false;
     }
   }

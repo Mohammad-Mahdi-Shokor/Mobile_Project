@@ -24,7 +24,9 @@ class CircularPercentage extends StatelessWidget {
             size: Size(size, size),
             painter: CircularPercentagePainter(
               percentage: percentage,
-              backgroundColor: theme.colorScheme.onSurface.withOpacity(0.15),
+              backgroundColor: theme.colorScheme.onSurface.withValues(
+                alpha: 0.15,
+              ),
               progressColor: theme.colorScheme.primary,
             ),
           ),
@@ -52,18 +54,16 @@ class CircularPercentagePainter extends CustomPainter {
     final center = size.center(Offset.zero);
     final radius = (size.width / 2) - strokeWidth;
 
-    final backgroundPaint =
-        Paint()
-          ..color = backgroundColor
-          ..strokeWidth = strokeWidth
-          ..style = PaintingStyle.stroke;
+    final backgroundPaint = Paint()
+      ..color = backgroundColor
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
 
-    final progressPaint =
-        Paint()
-          ..color = progressColor
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round
-          ..style = PaintingStyle.stroke;
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
 
     canvas.drawCircle(center, radius, backgroundPaint);
 

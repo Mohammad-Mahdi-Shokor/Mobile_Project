@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/lesson_path_screen.dart';
 import '../services/database_helper.dart';
-import '../models/CourseInfo.dart';
+import '../models/course_info.dart';
 import '../services/scores_repo.dart';
 
 class CourseInfoScreen extends StatefulWidget {
@@ -25,7 +25,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
     super.initState();
     _checkIfCourseRegistered();
     setState(() {
-      courseIndex = CoursesInfo.indexOf(widget.course);
+      courseIndex = coursesInfo.indexOf(widget.course);
     });
   }
 
@@ -43,7 +43,6 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      print("Error checking course registration: $e");
     }
   }
 
@@ -64,7 +63,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
         _isCourseRegistered = true;
         _isLoading = false;
       });
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Course registered successfully!'),
@@ -73,6 +72,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       );
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error registering course: $e'),
@@ -100,7 +100,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
         _isCourseRegistered = false;
         _isLoading = false;
       });
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Course unregistered!'),
@@ -109,13 +109,13 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
       );
     } catch (e) {
       setState(() => _isLoading = false);
-      print("Error unregistering course: $e");
     }
   }
 
   void _navigateToLessonPath() {
     if (!_isCourseRegistered) {
       _registerCourse().then((_) {
+        if (!mounted) return;
         if (_isCourseRegistered) {
           Navigator.push(
             context,
@@ -174,31 +174,32 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: widget.course.imageUrl.startsWith('http')
-                          ? Image.network(
-                            widget.course.imageUrl,
-                            height: 180,
-                            width: 180,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
+                      child:
+                          widget.course.imageUrl.startsWith('http')
+                              ? Image.network(
+                                widget.course.imageUrl,
+                                height: 180,
+                                width: 180,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 180,
+                                    width: 100,
+                                    color: Colors.grey[200],
+                                    child: Icon(
+                                      Icons.book,
+                                      size: 60,
+                                      color: Colors.grey,
+                                    ),
+                                  );
+                                },
+                              )
+                              : Image.asset(
+                                widget.course.imageUrl,
                                 height: 180,
                                 width: 100,
-                                color: Colors.grey[200],
-                                child: Icon(
-                                  Icons.book,
-                                  size: 60,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                          )
-                          : Image.asset(
-                            widget.course.imageUrl,
-                            height: 180,
-                            width: 100,
-                            fit: BoxFit.cover,
-                          ),
+                                fit: BoxFit.cover,
+                              ),
                     ),
                     const SizedBox(height: 24),
 
@@ -225,7 +226,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                         _buildStatItem(
                           icon: Icons.menu_book,
                           label: 'Lessons',
-                          value: Lessons[courseIndex].length.toString(),
+                          value: lessonsInfo[courseIndex].length.toString(),
                         ),
                         _buildStatItem(
                           icon: Icons.schedule,
@@ -250,7 +251,7 @@ class _CourseInfoScreenState extends State<CourseInfoScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    ...Lessons[courseIndex].map(
+                    ...lessonsInfo[courseIndex].map(
                       (lesson) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Row(

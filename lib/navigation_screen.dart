@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/models/data.dart';
 import 'package:mobile_project/screens/profile_screen.dart';
-import 'package:mobile_project/models/CourseInfo.dart';
+import 'package:mobile_project/models/course_info.dart';
 import 'package:mobile_project/widgets/screen_app_bar.dart';
 import 'package:mobile_project/screens/settings_screen.dart';
 import 'package:mobile_project/widgets/tobeimplementedAlert.dart';
@@ -19,7 +19,7 @@ class NavigationScreen extends StatefulWidget {
     this.selectedIndex = 0,
   });
   final void Function() onToggleTheme;
-  final selectedIndex;
+  final int selectedIndex;
   @override
   State<NavigationScreen> createState() => _NavigationScreenState();
 }
@@ -28,7 +28,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
   int _selectedIndex = 0;
 
   bool coursesExpanded = false;
-  final List<CourseInfo> courses = CoursesInfo;
+  final List<CourseInfo> courses = coursesInfo;
   late List<CourseInfo> registeredCourses = [];
   late Widget currentScreen;
 
@@ -65,7 +65,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
   }
 
-  List<String> MenuItems = ["Chats", "Groups", "Communities"];
+  List<String> menuItems = ["Chats", "Groups", "Communities"];
 
   Drawer _buildDrawer() {
     final theme = Theme.of(context);
@@ -140,7 +140,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   ),
                 ),
               ),
-            ...MenuItems.map((item) {
+            ...menuItems.map((item) {
               return ListTile(
                 leading: Icon(
                   Icons.chat,
@@ -217,7 +217,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
 
     return Scaffold(
-      appBar: ScreenAppBar(context, _selectedIndex, widget.onToggleTheme),
+      appBar: screenAppBar(context, _selectedIndex, widget.onToggleTheme),
       drawer: _selectedIndex == 0 ? _buildDrawer() : null,
       body: currentScreen,
       bottomNavigationBar: CurvedNavigationBar(

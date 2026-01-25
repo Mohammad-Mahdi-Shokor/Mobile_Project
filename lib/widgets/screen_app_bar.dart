@@ -10,7 +10,7 @@ import 'package:mobile_project/services/profile_state.dart';
 import '../models/user.dart';
 import '../screens/achievements_screen.dart';
 
-AppBar ScreenAppBar(
+AppBar screenAppBar(
   BuildContext context,
   int index,
   VoidCallback onToggleTheme,
@@ -71,7 +71,7 @@ AppBar ScreenAppBar(
         Text(
           "Let's start learning",
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             fontSize: 12,
           ),
         ),

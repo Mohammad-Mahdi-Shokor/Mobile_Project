@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_project/services/user_stats_service.dart';
 
-import '../models/Question.dart';
+import '../models/question.dart';
 
 class TestScreen extends StatefulWidget {
   final String section;
@@ -57,6 +57,7 @@ class _TestScreenState extends State<TestScreen> {
       await _statsService.incrementCorrectAnswers();
     }
 
+    if (!mounted) return;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -66,7 +67,7 @@ class _TestScreenState extends State<TestScreen> {
               borderRadius: BorderRadius.circular(24.0),
             ),
             elevation: 10,
-            shadowColor: Colors.black.withOpacity(0.3),
+            shadowColor: Colors.black.withValues(alpha: 0.3),
             backgroundColor: Theme.of(context).colorScheme.surface,
             child: Container(
               padding: const EdgeInsets.all(24.0),
@@ -85,7 +86,7 @@ class _TestScreenState extends State<TestScreen> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _getScoreColor(score).withOpacity(0.3),
+                          color: _getScoreColor(score).withValues(alpha: 0.3),
                           blurRadius: 15,
                           spreadRadius: 2,
                         ),
@@ -297,22 +298,24 @@ class _TestScreenState extends State<TestScreen> {
                       Color? iconColor;
 
                       if (!answered) {
-                        bgColor = theme.colorScheme.secondary.withOpacity(0.1);
+                        bgColor = theme.colorScheme.secondary.withValues(
+                          alpha: 0.1,
+                        );
                       } else {
                         if (isSelected) {
                           bgColor =
                               isCorrect
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.2);
+                                  ? Colors.green.withValues(alpha: 0.2)
+                                  : Colors.red.withValues(alpha: 0.2);
                           icon = isCorrect ? Icons.check_circle : Icons.cancel;
                           iconColor = isCorrect ? Colors.green : Colors.red;
                         } else if (isCorrect) {
-                          bgColor = Colors.green.withOpacity(0.2);
+                          bgColor = Colors.green.withValues(alpha: 0.2);
                           icon = Icons.check_circle;
                           iconColor = Colors.green;
                         } else {
-                          bgColor = theme.colorScheme.secondary.withOpacity(
-                            0.1,
+                          bgColor = theme.colorScheme.secondary.withValues(
+                            alpha: 0.1,
                           );
                         }
                       }

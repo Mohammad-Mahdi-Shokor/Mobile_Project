@@ -1,11 +1,11 @@
-import 'CourseInfo.dart';
+import 'course_info.dart';
 
 class User {
   final String username;
   final String fullName;
   final String tag;
   final int age;
-  final String gender;
+  final String sex;
   final String profileImage;
   final List<double> achievementsProgress;
   final List<CourseInfo> registeredCourses;
@@ -15,7 +15,7 @@ class User {
     required this.username,
     required this.tag,
     required this.age,
-    required this.gender,
+    required this.sex,
     this.profileImage =
         "https://cdn.wallpapersafari.com/95/19/uFaSYI.jpg", // Default image
     required this.achievementsProgress,
@@ -31,7 +31,7 @@ class User {
       'firstName': fullName,
       'tag': tag,
       'age': age,
-      'gender': gender,
+      'gender': sex,
       'profilePicture': profileImage,
     };
   }
@@ -43,7 +43,7 @@ class User {
       fullName: map['firstName'] ?? '',
       tag: map['tag'] ?? '',
       age: map['age'] ?? 0,
-      gender: map['gender'] ?? '',
+      sex: map['gender'] ?? '',
       profileImage: map['profilePicture'] ?? '',
       achievementsProgress: [],
       registeredCourses: [],
@@ -53,10 +53,10 @@ class User {
 
   User copyWith({
     String? username,
-    String? FirstName,
+    String? firstname,
     String? tag,
     int? age,
-    String? Gender,
+    String? gender,
     String? profilePicture,
     List<double>? achievementsScores,
     List<CourseInfo>? registeredCourses,
@@ -64,10 +64,10 @@ class User {
   }) {
     return User(
       username: username ?? this.username,
-      fullName: FirstName ?? fullName,
+      fullName: firstname ?? fullName,
       tag: tag ?? this.tag,
       age: age ?? this.age,
-      gender: Gender ?? gender,
+      sex: gender ?? sex,
       profileImage: profilePicture ?? profileImage,
       achievementsProgress: achievementsScores ?? achievementsProgress,
       registeredCourses: registeredCourses ?? this.registeredCourses,
@@ -83,7 +83,7 @@ final User sampleUser = User(
   fullName: "Mohammad",
   tag: "Software Engineer",
   age: 21,
-  gender: "Male",
+  sex: "Male",
   profileImage: "https://cdn.wallpapersafari.com/95/19/uFaSYI.jpg",
   achievementsProgress: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   registeredCourses: [],

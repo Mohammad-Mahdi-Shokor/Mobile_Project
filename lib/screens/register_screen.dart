@@ -68,7 +68,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       _fullNameController.text = user.fullName;
       _tagController.text = user.tag;
       _ageController.text = user.age.toString();
-      _selectedGender = user.gender;
+      _selectedGender = user.sex;
       _profileImage = user.profileImage;
     }
 
@@ -98,7 +98,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       fullName: _fullNameController.text.trim(),
       tag: _tagController.text.trim(),
       age: int.tryParse(_ageController.text) ?? 0,
-      gender: _selectedGender,
+      sex: _selectedGender,
       profileImage:
           _profileImage.isEmpty
               ? 'https://cdn.wallpapersafari.com/95/19/uFaSYI.jpg'
@@ -139,6 +139,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
     } else {
       await _userService.setFirstLaunchCompleted();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -154,16 +155,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final service = UserStatsService();
     await service.resetAllProgress();
     await ScoresRepository.clearScores();
-    try {
-      final DatabaseService dbService = DatabaseService();
-      final courses = await dbService.getCourses();
-      for (var course in courses) {
-        if (course.id != null) {
-          await dbService.deleteCourse(course.id!);
-        }
+
+    final DatabaseService dbService = DatabaseService();
+    final courses = await dbService.getCourses();
+    for (var course in courses) {
+      if (course.id != null) {
+        await dbService.deleteCourse(course.id!);
       }
-    } catch (e) {
-      print("Error deleting course progress: $e");
     }
 
     setState(() => _isLoading = false);
@@ -356,7 +354,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const SizedBox(height: 16),
 
                       DropdownButtonFormField<String>(
-                        value: _selectedGender,
+                        initialValue: _selectedGender,
                         decoration: const InputDecoration(labelText: 'Gender'),
                         items:
                             ['Male', 'Female', 'Rather not say']
@@ -372,7 +370,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const SizedBox(height: 16),
 
                       DropdownButtonFormField<String>(
-                        value:
+                        initialValue:
                             _tagController.text.isEmpty
                                 ? null
                                 : _tagController.text,

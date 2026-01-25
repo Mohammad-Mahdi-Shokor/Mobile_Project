@@ -29,7 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   List<Achievement> _achievements = [];
   bool _showAllAchievements = false;
-  
 
   Map<String, bool> get achievementCompletionMap {
     return {for (var a in _achievements) a.name: a.isCompleted};
@@ -55,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<List<Achievement>> _calculateAchievementsProgress() async {
     final courses = await _dbService.getCourses();
-    final achievements = List<Achievement>.from(Achievements);
+    final achievements = List<Achievement>.from(achievementsInfo);
     final statsService = UserStatsService();
 
     final totalLessonsCompleted = courses.fold(
@@ -71,16 +70,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final hasFastCompletion = await statsService.hasFastCompletion();
 
     bool hasMasteredCourse = courses.any((course) {
-      try {
-        final courseIndex = CoursesInfo.indexWhere(
-          (c) => c.title == course.title,
-        );
-        if (courseIndex >= 0 && courseIndex < Lessons.length) {
-          final totalLessonsInCourse = Lessons[courseIndex].length;
-          return course.lessonsFinished >= totalLessonsInCourse;
-        }
-      } catch (e) {
-        print("Error checking course completion: $e");
+      final courseIndex = coursesInfo.indexWhere(
+        (c) => c.title == course.title,
+      );
+      if (courseIndex >= 0 && courseIndex < lessonsInfo.length) {
+        final totalLessonsInCourse = lessonsInfo[courseIndex].length;
+        return course.lessonsFinished >= totalLessonsInCourse;
       }
       return false;
     });
@@ -96,8 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         case "Completionist":
           newProgress =
-              registeredCoursesCount >= CoursesInfo.length
-                  ? CoursesInfo.length.toDouble()
+              registeredCoursesCount >= coursesInfo.length
+                  ? coursesInfo.length.toDouble()
                   : registeredCoursesCount.toDouble();
           break;
 
@@ -190,6 +185,7 @@ Keep learning with me! 💪
 #LearningApp #Progress #AchievementUnlocked
 ''';
 
+      // ignore: deprecated_member_use
       await Share.share(shareText, subject: 'My Learning Progress');
 
       await _statsService.incrementShareCount();
@@ -214,7 +210,6 @@ Keep learning with me! 💪
     }
   }
 
-  
   Map<String, bool> getAchievementCompletionMap() {
     return {
       for (var achievement in _achievements)
@@ -288,18 +283,18 @@ Keep learning with me! 💪
                 displayUser.tag,
                 style: GoogleFonts.spaceGrotesk(
                   fontSize: screenWidth * 0.05,
-                  color: theme.colorScheme.onSurface.withOpacity(0.8),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
               SizedBox(height: screenHeight * 0.008),
 
               Text(
-                "${displayUser.age}, ${displayUser.gender}",
+                "${displayUser.age}, ${displayUser.sex}",
                 style: GoogleFonts.poppins(
                   fontSize:
                       isSmallScreen ? screenWidth * 0.037 : screenWidth * 0.039,
-                  color: theme.colorScheme.onSurface.withOpacity(0.6),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
               SizedBox(height: screenHeight * 0.03),
@@ -310,7 +305,7 @@ Keep learning with me! 💪
                   color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: theme.colorScheme.outline.withOpacity(0.2),
+                    color: theme.colorScheme.outline.withValues(alpha: 0.2),
                   ),
                 ),
                 child: Column(
@@ -342,7 +337,9 @@ Keep learning with me! 💪
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF3D5CFF).withOpacity(0.1),
+                              color: const Color(
+                                0xFF3D5CFF,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -376,7 +373,12 @@ Keep learning with me! 💪
                       child: GridView.builder(
                         physics: const BouncingScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: _showAllAchievements ? _achievements.length : (_achievements.length > 6 ? 6 : _achievements.length),
+                        itemCount:
+                            _showAllAchievements
+                                ? _achievements.length
+                                : (_achievements.length > 6
+                                    ? 6
+                                    : _achievements.length),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 3,
                           mainAxisSpacing: 12,
@@ -386,8 +388,9 @@ Keep learning with me! 💪
                         itemBuilder: (context, index) {
                           final achievement = _achievements[index];
                           final isCompleted =
-                              achievementCompletionMap[achievement.name] ?? false;
-                      
+                              achievementCompletionMap[achievement.name] ??
+                              false;
+
                           return _buildAchievementPreview(
                             achievement: achievement,
                             isCompleted: isCompleted,
@@ -420,27 +423,27 @@ Keep learning with me! 💪
                         ),
                       ),
 
-                      if (_showAllAchievements && _achievements.length > 6)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Center(
-                            child: GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _showAllAchievements = false;
-                                });
-                              },
-                              child: Text(
-                                'Show less',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  color: Colors.grey[700],
-                                  fontStyle: FontStyle.italic,
-                                ),
+                    if (_showAllAchievements && _achievements.length > 6)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Center(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showAllAchievements = false;
+                              });
+                            },
+                            child: Text(
+                              'Show less',
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: Colors.grey[700],
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
                           ),
                         ),
+                      ),
                   ],
                 ),
               ),
@@ -506,13 +509,15 @@ Keep learning with me! 💪
           borderRadius: BorderRadius.circular(12),
           color:
               isCompleted
-                  ? achievement.color.withOpacity(0.15)
-                  : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                  ? achievement.color.withValues(alpha: 0.15)
+                  : theme.colorScheme.surfaceContainerHighest.withValues(
+                    alpha: 0.5,
+                  ),
           border: Border.all(
             color:
                 isCompleted
-                    ? achievement.color.withOpacity(0.3)
-                    : theme.colorScheme.outline.withOpacity(0.2),
+                    ? achievement.color.withValues(alpha: 0.3)
+                    : theme.colorScheme.outline.withValues(alpha: 0.2),
             width: isCompleted ? 1.5 : 1,
           ),
         ),
@@ -528,8 +533,8 @@ Keep learning with me! 💪
                     shape: BoxShape.circle,
                     color:
                         isCompleted
-                            ? achievement.color.withOpacity(0.2)
-                            : Colors.grey.withOpacity(0.2),
+                            ? achievement.color.withValues(alpha: 0.2)
+                            : Colors.grey.withValues(alpha: 0.2),
                   ),
                   child: Icon(
                     achievement.icon,

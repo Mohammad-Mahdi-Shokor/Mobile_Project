@@ -43,7 +43,6 @@ class ScoresRepository {
 
       return scores;
     } catch (e) {
-      print('Error decoding scores: $e');
       return null;
     }
   }
@@ -86,9 +85,6 @@ class ScoresRepository {
       );
       newScores[courseIndex][lessonIndex] = score;
       await saveScores(newScores);
-      print(
-        'Created new scores structure and set score at [$courseIndex][$lessonIndex] to $score',
-      );
     } else {
       final List<List<int>> updatedScores = List.from(currentScores);
 
@@ -102,7 +98,6 @@ class ScoresRepository {
 
       updatedScores[courseIndex][lessonIndex] = score;
       await saveScores(updatedScores);
-      print('Updated score at [$courseIndex][$lessonIndex] to $score');
     }
   }
 
@@ -152,7 +147,6 @@ class ScoresRepository {
     );
 
     await saveScores(updatedScores);
-    print('Reset all scores for course $courseIndex');
   }
 
   static Future<void> deleteScore(int courseIndex, int lessonIndex) async {
@@ -162,7 +156,6 @@ class ScoresRepository {
   static Future<void> clearScores() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_key);
-    print('Cleared all scores');
   }
 
   static Future<int> getHighestScoreForCourse(int courseIndex) async {

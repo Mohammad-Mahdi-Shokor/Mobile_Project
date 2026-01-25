@@ -31,7 +31,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
   List<Achievement> get _filteredAchievements {
     List<Achievement> filtered = _achievements;
-    
+
     if (_selectedFilter == 1) {
       filtered = filtered.where((a) => a.isCompleted).toList();
     } else if (_selectedFilter == 2) {
@@ -63,24 +63,26 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isCompleted
-              ? achievement.color.withOpacity(0.5)
-              : Colors.transparent,
+          color:
+              isCompleted
+                  ? achievement.color.withValues(alpha: 0.5)
+                  : Colors.transparent,
           width: isCompleted ? 2 : 1,
         ),
       ),
       child: Container(
         decoration: BoxDecoration(
-          gradient: isCompleted
-              ? LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    achievement.color.withOpacity(0.1),
-                    achievement.color.withOpacity(0.05),
-                  ],
-                )
-              : null,
+          gradient:
+              isCompleted
+                  ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      achievement.color.withValues(alpha: 0.1),
+                      achievement.color.withValues(alpha: 0.05),
+                    ],
+                  )
+                  : null,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Padding(
@@ -92,18 +94,22 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
+                    padding: EdgeInsets.all(
+                      MediaQuery.of(context).size.width * 0.03,
+                    ),
                     decoration: BoxDecoration(
-                      color: isCompleted
-                          ? achievement.color.withOpacity(0.2)
-                          : achievement.color.withOpacity(0.1),
+                      color:
+                          isCompleted
+                              ? achievement.color.withValues(alpha: 0.2)
+                              : achievement.color.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       achievement.icon,
-                      color: isCompleted
-                          ? achievement.color
-                          : achievement.color.withOpacity(0.7),
+                      color:
+                          isCompleted
+                              ? achievement.color
+                              : achievement.color.withValues(alpha: 0.7),
                       size: MediaQuery.of(context).size.width * 0.07,
                     ),
                   ),
@@ -118,7 +124,8 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               child: Text(
                                 achievement.name,
                                 style: GoogleFonts.poppins(
-                                  fontSize: MediaQuery.of(context).size.width * 0.045,
+                                  fontSize:
+                                      MediaQuery.of(context).size.width * 0.045,
                                   fontWeight: FontWeight.w600,
                                   color: theme.colorScheme.onSurface,
                                 ),
@@ -128,20 +135,25 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                             ),
                             if (isCompleted)
                               Container(
-                                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.01),
+                                padding: EdgeInsets.all(
+                                  MediaQuery.of(context).size.width * 0.01,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.2),
+                                  color: Colors.green.withValues(alpha: 0.2),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.check,
-                                  size: MediaQuery.of(context).size.width * 0.04,
+                                  size:
+                                      MediaQuery.of(context).size.width * 0.04,
                                   color: Colors.green,
                                 ),
                               ),
                           ],
                         ),
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.005),
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.005,
+                        ),
                         Text(
                           achievement.type.name.toUpperCase(),
                           style: GoogleFonts.poppins(
@@ -160,7 +172,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 achievement.description,
                 style: GoogleFonts.poppins(
                   fontSize: MediaQuery.of(context).size.width * 0.035,
-                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
@@ -176,7 +188,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                         'Progress',
                         style: GoogleFonts.poppins(
                           fontSize: MediaQuery.of(context).size.width * 0.033,
-                          color: theme.colorScheme.onSurface.withOpacity(0.6),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.6,
+                          ),
                         ),
                       ),
                       Text(
@@ -192,7 +206,9 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                   SizedBox(height: MediaQuery.of(context).size.height * 0.01),
                   LinearProgressIndicator(
                     value: progress,
-                    backgroundColor: theme.colorScheme.outline.withOpacity(0.2),
+                    backgroundColor: theme.colorScheme.outline.withValues(
+                      alpha: 0.2,
+                    ),
                     color: achievement.color,
                     borderRadius: BorderRadius.circular(4),
                     minHeight: MediaQuery.of(context).size.height * 0.01,
@@ -202,7 +218,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     '${(progress * 100).toInt()}% complete',
                     style: GoogleFonts.poppins(
                       fontSize: MediaQuery.of(context).size.width * 0.03,
-                      color: theme.colorScheme.onSurface.withOpacity(0.6),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -219,11 +235,15 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final completedCount = _achievements.where((a) => a.isCompleted).length;
     final totalCount = _achievements.length;
-    
+
     final inProgressCount = totalCount - completedCount;
-    final averageProgress = totalCount > 0
-        ? (_achievements.fold(0.0, (sum, a) => sum + a.percentage) / totalCount * 100).toInt()
-        : 0;
+    final averageProgress =
+        totalCount > 0
+            ? (_achievements.fold(0.0, (sum, a) => sum + a.percentage) /
+                    totalCount *
+                    100)
+                .toInt()
+            : 0;
 
     return Card(
       elevation: 4,
@@ -253,7 +273,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 Container(
                   width: 1,
                   height: screenWidth * 0.1,
-                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
                 _buildStatItem(
                   value: inProgressCount.toString(),
@@ -264,7 +284,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                 Container(
                   width: 1,
                   height: screenWidth * 0.1,
-                  color: theme.colorScheme.outline.withOpacity(0.2),
+                  color: theme.colorScheme.outline.withValues(alpha: 0.2),
                 ),
                 _buildStatItem(
                   value: '$averageProgress%',
@@ -287,20 +307,16 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     required Color color,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
-    
+
     return Column(
       children: [
         Container(
           padding: EdgeInsets.all(screenWidth * 0.025),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon, 
-            color: color, 
-            size: screenWidth * 0.05
-          ),
+          child: Icon(icon, color: color, size: screenWidth * 0.05),
         ),
         SizedBox(height: screenWidth * 0.02),
         Text(
@@ -325,7 +341,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   Widget _buildFilterChip(int index, String label) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSelected = _selectedFilter == index;
-    
+
     return FilterChip(
       label: Text(label),
       selected: isSelected,
@@ -335,7 +351,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         });
       },
       backgroundColor: Colors.grey[100],
-      selectedColor: const Color(0xFF3D5CFF).withOpacity(0.2),
+      selectedColor: const Color(0xFF3D5CFF).withValues(alpha: 0.2),
       labelStyle: GoogleFonts.poppins(
         fontSize: screenWidth * 0.035,
         color: isSelected ? const Color(0xFF3D5CFF) : Colors.grey[700],
@@ -345,9 +361,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected
-              ? const Color(0xFF3D5CFF).withOpacity(0.5)
-              : Colors.grey[300]!,
+          color:
+              isSelected
+                  ? const Color(0xFF3D5CFF).withValues(alpha: 0.5)
+                  : Colors.grey[300]!,
         ),
       ),
     );
@@ -368,99 +385,102 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
         backgroundColor: const Color(0xFF3D5CFF),
         foregroundColor: Colors.white,
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadData,
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: EdgeInsets.all(screenWidth * 0.04),
-                children: [
-                  _buildStatsCard(),
-                  SizedBox(height: screenWidth * 0.06),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Your Achievements',
-                        style: GoogleFonts.poppins(
-                          fontSize: screenWidth * 0.05,
-                          fontWeight: FontWeight.w600,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.03,
-                          vertical: screenWidth * 0.015,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF3D5CFF).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${_achievements.where((a) => a.isCompleted).length}/${_achievements.length}',
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.all(screenWidth * 0.04),
+                  children: [
+                    _buildStatsCard(),
+                    SizedBox(height: screenWidth * 0.06),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Your Achievements',
                           style: GoogleFonts.poppins(
-                            fontSize: screenWidth * 0.035,
-                            color: const Color(0xFF3D5CFF),
+                            fontSize: screenWidth * 0.05,
                             fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: screenWidth * 0.04),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildFilterChip(0, 'All'),
-                        SizedBox(width: screenWidth * 0.02),
-                        _buildFilterChip(1, 'Completed'),
-                        SizedBox(width: screenWidth * 0.02),
-                        _buildFilterChip(2, 'In Progress'),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenWidth * 0.03,
+                            vertical: screenWidth * 0.015,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFF3D5CFF,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${_achievements.where((a) => a.isCompleted).length}/${_achievements.length}',
+                            style: GoogleFonts.poppins(
+                              fontSize: screenWidth * 0.035,
+                              color: const Color(0xFF3D5CFF),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: screenWidth * 0.05),
-                  if (filteredAchievements.isEmpty)
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.only(top: screenWidth * 0.2),
-                        child: Column(
-                          children: [
-                            Icon(
-                              _selectedFilter == 1
-                                  ? Icons.celebration
-                                  : Icons.search_off,
-                              size: screenWidth * 0.2,
-                              color: Colors.grey[300],
-                            ),
-                            SizedBox(height: screenWidth * 0.04),
-                            Text(
-                              _selectedFilter == 1
-                                  ? 'No completed achievements yet!'
-                                  : _selectedFilter == 2
-                                      ? 'All achievements completed!'
-                                      : 'No achievements found',
-                              style: GoogleFonts.poppins(
-                                fontSize: screenWidth * 0.04,
-                                color: Colors.grey[600],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
+                    SizedBox(height: screenWidth * 0.04),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildFilterChip(0, 'All'),
+                          SizedBox(width: screenWidth * 0.02),
+                          _buildFilterChip(1, 'Completed'),
+                          SizedBox(width: screenWidth * 0.02),
+                          _buildFilterChip(2, 'In Progress'),
+                        ],
                       ),
-                    )
-                  else
-                    ...filteredAchievements.map((achievement) {
-                      return _buildAchievementCard(achievement);
-                    }),
-                  SizedBox(height: screenWidth * 0.15),
-                ],
+                    ),
+                    SizedBox(height: screenWidth * 0.05),
+                    if (filteredAchievements.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: screenWidth * 0.2),
+                          child: Column(
+                            children: [
+                              Icon(
+                                _selectedFilter == 1
+                                    ? Icons.celebration
+                                    : Icons.search_off,
+                                size: screenWidth * 0.2,
+                                color: Colors.grey[300],
+                              ),
+                              SizedBox(height: screenWidth * 0.04),
+                              Text(
+                                _selectedFilter == 1
+                                    ? 'No completed achievements yet!'
+                                    : _selectedFilter == 2
+                                    ? 'All achievements completed!'
+                                    : 'No achievements found',
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.04,
+                                  color: Colors.grey[600],
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      ...filteredAchievements.map((achievement) {
+                        return _buildAchievementCard(achievement);
+                      }),
+                    SizedBox(height: screenWidth * 0.15),
+                  ],
+                ),
               ),
-            ),
       floatingActionButton: Container(
         margin: EdgeInsets.only(bottom: screenWidth * 0.05),
         child: FloatingActionButton.extended(
@@ -481,6 +501,7 @@ Keep pushing for greatness! 💪
 #Achievements #LearningGoals #Progress
             ''';
 
+            // ignore: deprecated_member_use
             await Share.share(shareText);
             await statsService.incrementShareCount();
           },

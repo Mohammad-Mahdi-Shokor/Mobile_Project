@@ -7,7 +7,7 @@ class AchievementsHelper {
   static Future<List<Achievement>> calculateAchievementsProgress() async {
     final DatabaseService dbService = DatabaseService();
     final courses = await dbService.getCourses();
-    final achievements = List<Achievement>.from(Achievements);
+    final achievements = List<Achievement>.from(achievementsInfo);
     final statsService = UserStatsService();
 
     final totalLessonsCompleted = courses.fold(
@@ -23,16 +23,12 @@ class AchievementsHelper {
     final hasFastCompletion = await statsService.hasFastCompletion();
 
     bool hasMasteredCourse = courses.any((course) {
-      try {
-        final courseIndex = CoursesInfo.indexWhere(
-          (c) => c.title == course.title,
-        );
-        if (courseIndex >= 0 && courseIndex < Lessons.length) {
-          final totalLessonsInCourse = Lessons[courseIndex].length;
-          return course.lessonsFinished >= totalLessonsInCourse;
-        }
-      } catch (e) {
-        print("Error checking course completion: $e");
+      final courseIndex = coursesInfo.indexWhere(
+        (c) => c.title == course.title,
+      );
+      if (courseIndex >= 0 && courseIndex < lessonsInfo.length) {
+        final totalLessonsInCourse = lessonsInfo[courseIndex].length;
+        return course.lessonsFinished >= totalLessonsInCourse;
       }
       return false;
     });
@@ -48,8 +44,8 @@ class AchievementsHelper {
 
         case "Completionist":
           newProgress =
-              registeredCoursesCount >= CoursesInfo.length
-                  ? CoursesInfo.length.toDouble()
+              registeredCoursesCount >= coursesInfo.length
+                  ? coursesInfo.length.toDouble()
                   : registeredCoursesCount.toDouble();
           break;
 

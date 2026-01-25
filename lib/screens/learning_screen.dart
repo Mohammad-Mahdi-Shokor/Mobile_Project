@@ -16,7 +16,7 @@ class _LearningScreenState extends State<LearningScreen> {
   bool _isLoading = true;
   final DatabaseService _databaseService = DatabaseService();
   final Map<String, int> _courseProgress = {};
-  int totalAvaialableCourses = CoursesInfo.length;
+  int totalAvaialableCourses = coursesInfo.length;
   @override
   void initState() {
     super.initState();
@@ -44,7 +44,6 @@ class _LearningScreenState extends State<LearningScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      print("Error loading registered courses: $e");
     }
   }
 
@@ -57,21 +56,17 @@ class _LearningScreenState extends State<LearningScreen> {
   }
 
   int _getTotalLessons(String courseTitle) {
-    try {
-      final courseIndex = CoursesInfo.indexWhere(
-        (course) => course.title == courseTitle,
-      );
+    final courseIndex = coursesInfo.indexWhere(
+      (course) => course.title == courseTitle,
+    );
 
-      if (courseIndex >= 0 && courseIndex < Lessons.length) {
-        return Lessons[courseIndex].length;
-      }
-    } catch (e) {
-      print("Error getting total lessons: $e");
+    if (courseIndex >= 0 && courseIndex < lessonsInfo.length) {
+      return lessonsInfo[courseIndex].length;
     }
 
-    final course = CoursesInfo.firstWhere(
+    final course = coursesInfo.firstWhere(
       (course) => course.title == courseTitle,
-      orElse: () => CoursesInfo.first,
+      orElse: () => coursesInfo.first,
     );
 
     return course.sections.length;
@@ -118,7 +113,7 @@ class _LearningScreenState extends State<LearningScreen> {
           ),
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
-            itemCount: CoursesInfo.length + comingSoon.length,
+            itemCount: coursesInfo.length + comingSoon.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: screenWidth * 0.03,
@@ -130,7 +125,7 @@ class _LearningScreenState extends State<LearningScreen> {
               final isDark = theme.brightness == Brightness.dark;
 
               dynamic sampleCourse;
-              sampleCourse = isAvailable ? CoursesInfo[index] : null;
+              sampleCourse = isAvailable ? coursesInfo[index] : null;
 
               final isRegistered =
                   isAvailable ? _isCourseRegistered(sampleCourse.title) : null;
@@ -146,9 +141,7 @@ class _LearningScreenState extends State<LearningScreen> {
                       : null;
 
               final comingSoonCourseTitle =
-                  isAvailable
-                      ? null
-                      : comingSoon[index - CoursesInfo.length];
+                  isAvailable ? null : comingSoon[index - coursesInfo.length];
 
               return isAvailable
                   ? InkWell(
@@ -168,8 +161,8 @@ class _LearningScreenState extends State<LearningScreen> {
                         color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: theme.colorScheme.outline.withOpacity(
-                            isDark ? 0.1 : 0.15,
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: isDark ? 0.1 : 0.15,
                           ),
                           width: 1,
                         ),
@@ -177,14 +170,14 @@ class _LearningScreenState extends State<LearningScreen> {
                             isDark
                                 ? [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
                                 ]
                                 : [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -201,7 +194,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF3D5CFF,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
@@ -233,7 +226,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 LinearProgressIndicator(
                                   value: progress,
                                   backgroundColor: theme.colorScheme.outline
-                                      .withOpacity(0.2),
+                                      .withValues(alpha: 0.2),
                                   color: const Color(0xFF3D5CFF),
                                   borderRadius: BorderRadius.circular(4),
                                   minHeight: screenWidth * 0.01,
@@ -248,7 +241,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: screenWidth * 0.032,
                                         color: theme.colorScheme.onSurface
-                                            .withOpacity(0.6),
+                                            .withValues(alpha: 0.6),
                                       ),
                                     ),
                                     Text(
@@ -279,7 +272,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 border: Border.all(
                                   color: const Color(
                                     0xFF3D5CFF,
-                                  ).withOpacity(0.2),
+                                  ).withValues(alpha: 0.2),
                                   width: 1,
                                 ),
                               ),
@@ -305,12 +298,12 @@ class _LearningScreenState extends State<LearningScreen> {
                       decoration: BoxDecoration(
                         color:
                             isDark
-                                ? Colors.orange.withOpacity(0.1)
-                                : Colors.orange.withOpacity(0.05),
+                                ? Colors.orange.withValues(alpha: 0.1)
+                                : Colors.orange.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: theme.colorScheme.outline.withOpacity(
-                            isDark ? 0.1 : 0.15,
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: isDark ? 0.1 : 0.15,
                           ),
                           width: 1,
                         ),
@@ -318,14 +311,14 @@ class _LearningScreenState extends State<LearningScreen> {
                             isDark
                                 ? [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
+                                    color: Colors.black.withValues(alpha: 0.2),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
                                 ]
                                 : [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                     blurRadius: 6,
                                     offset: const Offset(0, 2),
                                   ),
@@ -342,7 +335,7 @@ class _LearningScreenState extends State<LearningScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF3D5CFF,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
